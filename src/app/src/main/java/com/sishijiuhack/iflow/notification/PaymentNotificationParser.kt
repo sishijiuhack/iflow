@@ -95,6 +95,12 @@ class PaymentNotificationParser {
             "cib",
             "cebbank",
             "citic",
+            "cmbc",
+            "cgb",
+            "cbhb",
+            "bosc",
+            "bankofbeijing",
+            "bob",
             "hxb",
             "pingan",
         )

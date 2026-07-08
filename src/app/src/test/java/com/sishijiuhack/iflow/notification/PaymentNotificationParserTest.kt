@@ -204,6 +204,60 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_minshengBankPackageVariant_extractsBankSource() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.cmbc.mobilebank",
+                title = "交易提醒",
+                text = "尾号1234支出人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
+    fun parse_guangfaBankPackageVariant_extractsBankSource() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.cgb.mobile",
+                title = "交易提醒",
+                text = "尾号1234支出人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
+    fun parse_bankOfBeijingPackageVariant_extractsBankSource() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.bankofbeijing.mobile",
+                title = "交易提醒",
+                text = "尾号1234支出人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
     fun parse_bankMerchantNameLabel_extractsMerchant() {
         val result = parser.parse(
             PaymentNotificationInput(
