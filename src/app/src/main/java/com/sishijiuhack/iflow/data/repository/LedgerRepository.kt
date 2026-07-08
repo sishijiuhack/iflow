@@ -175,7 +175,10 @@ class LedgerRepository(
                         amountCents = rows.sumOf { it.amountCents },
                     )
                 }
-                .sortedByDescending { it.amountCents }
+                .sortedWith(
+                    compareByDescending<CategoryExpense> { it.amountCents }
+                        .thenBy { it.categoryName },
+                )
 
             StatsSnapshot(
                 summary = MonthSummary(

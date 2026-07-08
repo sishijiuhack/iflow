@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
+import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionSource
@@ -856,6 +857,52 @@ class LedgerRepositoryTest {
         assertEquals(7, stats.dailyExpenses.size)
         assertEquals(200L, stats.dailyExpenses.first().amountCents)
         assertEquals(100L, stats.dailyExpenses.last().amountCents)
+    }
+
+    @Test
+    fun observeStats_sortsEqualCategoryExpensesByName() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val month = YearMonth.of(2026, 7)
+        repository.ensureDefaultData()
+        val accountId = database.accountDao().listAll().first().id
+        val diningId = database.categoryDao().upsert(
+            CategoryEntity(
+                name = "Dining Tie",
+                type = TransactionType.Expense,
+                sortOrder = 100,
+                isDefault = false,
+            ),
+        )
+        val coffeeId = database.categoryDao().upsert(
+            CategoryEntity(
+                name = "Coffee Tie",
+                type = TransactionType.Expense,
+                sortOrder = 101,
+                isDefault = false,
+            ),
+        )
+        val occurredAt = LocalDate.of(2026, 7, 8).atStartOfDay(zone).toInstant().toEpochMilli()
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 500L,
+                categoryId = diningId,
+                accountId = accountId,
+                occurredAt = occurredAt,
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 500L,
+                categoryId = coffeeId,
+                accountId = accountId,
+                occurredAt = occurredAt,
+            ),
+        )
+
+        val stats = repository.observeStats(zone, month).first()
+
+        assertEquals(listOf("Coffee Tie", "Dining Tie"), stats.categoryExpenses.map { it.categoryName })
     }
 
     @Test
