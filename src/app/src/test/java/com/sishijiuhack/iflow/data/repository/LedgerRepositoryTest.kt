@@ -59,6 +59,19 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_requiresRuleKeyword() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-3").copy(
+                rawTitle = "微信团队",
+                rawText = "安全提醒 12.00元",
+            ),
+        )
+
+        assertNull(insertedId)
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
     fun setNotificationRuleEnabled_updatesRuleState() = runTest {
         repository.ensureDefaultData()
         val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }

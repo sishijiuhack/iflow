@@ -234,7 +234,7 @@ class LedgerRepository(
         ensureDefaultData()
         val settings = appSettingDao.get()
         if (settings?.autoCaptureEnabled == false) return null
-        if (!hasEnabledRuleFor(parsed.packageName)) return null
+        if (!hasEnabledRuleFor(parsed)) return null
         if (transactionDao.countByRawNotificationId(parsed.fingerprint) > 0) return null
         val categories = categoryDao.listByType(parsed.type)
         val accounts = accountDao.listAll()
@@ -315,9 +315,14 @@ class LedgerRepository(
         notificationRuleDao.update(rule.copy(enabled = enabled))
     }
 
-    private suspend fun hasEnabledRuleFor(packageName: String): Boolean {
+    private suspend fun hasEnabledRuleFor(parsed: PaymentNotificationParseResult): Boolean {
+        val text = listOf(parsed.rawTitle, parsed.rawText).joinToString(" ")
         return notificationRuleDao.listEnabled().any { rule ->
-            packageName == rule.packageName || packageName.contains(rule.packageName, ignoreCase = true)
+            val packageMatches = parsed.packageName == rule.packageName ||
+                parsed.packageName.contains(rule.packageName, ignoreCase = true)
+            val keywordMatches = rule.keywords.isEmpty() ||
+                rule.keywords.any { keyword -> text.contains(keyword, ignoreCase = true) }
+            packageMatches && keywordMatches
         }
     }
 
