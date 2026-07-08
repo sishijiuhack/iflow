@@ -906,6 +906,37 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeStats_categoryRankingOnlyIncludesSelectedMonth() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val month = YearMonth.of(2026, 7)
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 700L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = LocalDate.of(2026, 7, 8).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 900L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = LocalDate.of(2026, 8, 1).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+
+        val stats = repository.observeStats(zone, month).first()
+
+        assertEquals(1, stats.categoryExpenses.size)
+        assertEquals(700L, stats.categoryExpenses.first().amountCents)
+    }
+
+    @Test
     fun observeSummaryAndStats_hidePendingUntilConfirmed() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val month = YearMonth.of(2026, 7)
