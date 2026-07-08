@@ -117,7 +117,7 @@ class PaymentNotificationParserTest {
     fun parse_unionPayExpense_extractsExpenseMerchantAndSource() {
         val result = parser.parse(
             PaymentNotificationInput(
-                packageName = "com.unionpay.wallet",
+                packageName = "com.UnionPay.wallet",
                 title = "银联交易提醒",
                 text = "消费￥45.60，商户：超市",
                 postedAt = 100_000L,

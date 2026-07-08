@@ -51,7 +51,7 @@ class PaymentNotificationParser {
         return when {
             packageName == "com.tencent.mm" -> "微信"
             packageName == "com.eg.android.AlipayGphone" -> "支付宝"
-            packageName.contains("unionpay") -> "银联"
+            packageName.contains("unionpay", ignoreCase = true) -> "银联"
             packageName.contains("bank", ignoreCase = true) -> "银行"
             bankPackageHints.any { packageName.contains(it, ignoreCase = true) } -> "银行"
             packageName.contains("alipay", ignoreCase = true) -> "支付宝"
