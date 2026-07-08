@@ -97,6 +97,21 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toCsv_neutralizesFormulaLikeCategoryAndAccountNames() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                categories = listOf(it.categories.first().copy(name = "=Category")),
+                accounts = listOf(it.accounts.first().copy(name = "+Account")),
+            )
+        }
+
+        val csv = exporter.toCsv(snapshot)
+
+        assertTrue(csv.contains("'=Category"))
+        assertTrue(csv.contains("'+Account"))
+    }
+
+    @Test
     fun toCsv_exportsConfirmedTransactionsOnly() {
         val snapshot = sampleSnapshot().let {
             it.copy(
