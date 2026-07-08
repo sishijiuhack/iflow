@@ -45,6 +45,42 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_alipayPayment_extractsExpenseMerchantAndSource() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.eg.android.AlipayGphone",
+                title = "支付宝",
+                text = "你已向星巴克支付￥32.80",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(3280L, result?.amountCents)
+        assertEquals("星巴克", result?.merchant)
+        assertEquals("支付宝", result?.sourceApp)
+    }
+
+    @Test
+    fun parse_bankExpenseWithOnlySpendingKeyword_extractsExpense() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "尾号1234支出人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
     fun parse_irrelevantNotification_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
