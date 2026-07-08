@@ -68,7 +68,15 @@ class LedgerExporter {
             }
             appendLine("  ],")
             appendLine("  \"settings\": ${snapshot.settings?.let { setting ->
-                "{\"autoCaptureEnabled\": ${setting.autoCaptureEnabled}, \"autoConfirmEnabled\": ${setting.autoConfirmEnabled}, \"defaultAccountId\": ${setting.defaultAccountId}, \"lastExportedAt\": ${setting.lastExportedAt}}"
+                "{" +
+                    "\"id\": ${setting.id}, " +
+                    "\"autoCaptureEnabled\": ${setting.autoCaptureEnabled}, " +
+                    "\"autoConfirmEnabled\": ${setting.autoConfirmEnabled}, " +
+                    "\"defaultAccountId\": ${setting.defaultAccountId}, " +
+                    "\"lastExportedAt\": ${setting.lastExportedAt}, " +
+                    "\"createdAt\": ${setting.createdAt}, " +
+                    "\"updatedAt\": ${setting.updatedAt}" +
+                    "}"
             } ?: "null"}")
             appendLine("}")
         }

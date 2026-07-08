@@ -1,6 +1,7 @@
 package com.sishijiuhack.iflow.data.export
 
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
+import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.data.local.entity.TransactionEntity
@@ -25,6 +26,10 @@ class LedgerExporterTest {
         assertTrue(json.contains("\"accounts\""))
         assertTrue(json.contains("\"notificationRules\""))
         assertTrue(json.contains("\"packageName\": \"com.tencent.mm\""))
+        assertTrue(json.contains("\"settings\""))
+        assertTrue(json.contains("\"autoCaptureEnabled\": true"))
+        assertTrue(json.contains("\"createdAt\": 1000"))
+        assertTrue(json.contains("\"updatedAt\": 2000"))
     }
 
     @Test
@@ -73,7 +78,14 @@ class LedgerExporterTest {
                     updatedAt = 1000L,
                 ),
             ),
-            settings = null,
+            settings = AppSettingEntity(
+                autoCaptureEnabled = true,
+                autoConfirmEnabled = false,
+                defaultAccountId = 1L,
+                lastExportedAt = 2000L,
+                createdAt = 1000L,
+                updatedAt = 2000L,
+            ),
         )
     }
 }
