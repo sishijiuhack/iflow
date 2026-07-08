@@ -35,6 +35,8 @@ class LedgerRepository(
 
     fun observeAccounts(): Flow<List<AccountEntity>> = accountDao.observeAll()
 
+    fun observeNotificationRules(): Flow<List<NotificationRuleEntity>> = notificationRuleDao.observeAll()
+
     fun observeSettings(): Flow<AppSettingEntity?> = appSettingDao.observe()
 
     fun observeTransactions(): Flow<List<TransactionListItem>> {

@@ -7,6 +7,7 @@ import com.sishijiuhack.iflow.core.android.appContainer
 import com.sishijiuhack.iflow.data.export.LedgerExporter
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
+import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,10 +25,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val uiState: StateFlow<SettingsUiState> = combine(
         repository.observeSettings(),
         repository.observeAccounts(),
-    ) { settings, accounts ->
+        repository.observeNotificationRules(),
+    ) { settings, accounts, notificationRules ->
         SettingsUiState(
             settings = settings,
             accounts = accounts,
+            notificationRules = notificationRules,
         )
     }
         .stateIn(
@@ -96,4 +99,5 @@ data class ExportEvent(
 data class SettingsUiState(
     val settings: AppSettingEntity? = null,
     val accounts: List<AccountEntity> = emptyList(),
+    val notificationRules: List<NotificationRuleEntity> = emptyList(),
 )

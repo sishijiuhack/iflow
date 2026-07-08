@@ -5,6 +5,8 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -95,6 +97,7 @@ fun SettingsRoute(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -149,6 +152,14 @@ fun SettingsRoute(
             }
             Button(onClick = viewModel::exportCsv) {
                 Text("导出 CSV")
+            }
+        }
+        Text("通知规则", style = MaterialTheme.typography.titleMedium)
+        if (uiState.notificationRules.isEmpty()) {
+            Text("暂无通知规则")
+        } else {
+            uiState.notificationRules.forEach { rule ->
+                Text("${rule.appName} · ${if (rule.enabled) "已启用" else "已停用"}")
             }
         }
         Text("隐私说明", style = MaterialTheme.typography.titleMedium)
