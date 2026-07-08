@@ -38,6 +38,13 @@ class MoneyParserTest {
     }
 
     @Test
+    fun parseCents_acceptsCopiedAmountSpacing() {
+        assertEquals(1234L, MoneyParser.parseCents("RMB\u00A012.34"))
+        assertEquals(1234L, MoneyParser.parseCents("CNY\u202F12.34"))
+        assertTrue(MoneyParser.isPotentialAmount("RMB\u00A012."))
+    }
+
+    @Test
     fun parseCents_acceptsThousandsSeparatedAmountInput() {
         assertEquals(123456L, MoneyParser.parseCents("1,234.56"))
         assertEquals(123456L, MoneyParser.parseCents("￥１，２３４．５６"))
