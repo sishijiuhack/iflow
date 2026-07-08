@@ -634,6 +634,46 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun saveManualTransaction_updatesExistingTransactionInPlace() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+        val insertedId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 100L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 1_000L,
+            ),
+        )
+        val original = database.transactionDao().getById(insertedId)
+
+        Thread.sleep(2)
+        val updatedId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 250L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 2_000L,
+            ).copy(
+                id = insertedId,
+                merchant = "咖啡店",
+                note = "下午茶",
+            ),
+        )
+
+        val updated = database.transactionDao().getById(insertedId)
+        assertEquals(insertedId, updatedId)
+        assertEquals(250L, updated?.amountCents)
+        assertEquals("咖啡店", updated?.merchant)
+        assertEquals("下午茶", updated?.note)
+        assertEquals(2_000L, updated?.occurredAt)
+        assertEquals(original?.createdAt, updated?.createdAt)
+        assertEquals(original?.source, updated?.source)
+        assertTrue((updated?.updatedAt ?: 0L) >= (original?.updatedAt ?: 0L))
+    }
+
+    @Test
     fun saveManualTransaction_rejectsMissingReferences() = runTest {
         repository.ensureDefaultData()
         val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
