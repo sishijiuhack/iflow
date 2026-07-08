@@ -129,7 +129,7 @@ class PaymentNotificationParser {
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入", "入账", "存入", "工资", "贷记")
         val strongExpenseKeywords = listOf("付款", "扣款", "支出", "消费", "转出", "借记")
         val expenseKeywords = listOf("付款", "扣款", "支出", "消费", "支付", "转出", "借记")
-        val auxiliaryAmountLabels = listOf("余额", "账户余额", "可用余额", "手续费", "服务费", "优惠", "立减", "折扣", "红包", "抵扣")
+        val auxiliaryAmountLabels = listOf("余额", "账户余额", "可用余额", "手续费", "服务费", "优惠", "立减", "折扣", "红包", "抵扣", "应付", "原价")
     }
 }
 

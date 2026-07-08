@@ -770,6 +770,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_leadingPayableAmount_usesActualPaidAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.eg.android.AlipayGphone",
+                title = "支付宝",
+                text = "原价20.00元，应付18.00元，实付15.00元，商户：便利店",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1500L, result?.amountCents)
+        assertEquals("便利店", result?.merchant)
+    }
+
+    @Test
     fun parse_irrelevantNotification_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
