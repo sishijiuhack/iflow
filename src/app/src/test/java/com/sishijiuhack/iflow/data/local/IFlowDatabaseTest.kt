@@ -50,6 +50,18 @@ class IFlowDatabaseTest {
     }
 
     @Test
+    fun seedIfNeeded_insertsExpandedDefaultNotificationRuleMetadata() = runTest {
+        DefaultDataSeeder(database).seedIfNeeded(nowMillis = 1000L)
+
+        val rules = database.notificationRuleDao().listAll()
+
+        assertTrue(rules.all { it.directionPattern.contains("扣款") })
+        assertTrue(rules.all { it.merchantPattern?.contains("商户名称") == true })
+        assertTrue(rules.all { it.merchantPattern?.contains("交易商户") == true })
+        assertTrue(rules.all { it.merchantPattern?.contains("收款户名") == true })
+    }
+
+    @Test
     fun transactionDao_insertsListsUpdatesAndSoftDeletesTransactions() = runTest {
         DefaultDataSeeder(database).seedIfNeeded(nowMillis = 1000L)
         val now = 2000L
