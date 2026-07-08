@@ -47,12 +47,22 @@ class TransactionFormViewModel(
         if (normalizedForm != form) {
             formState.value = normalizedForm
         }
+        val amountError = normalizedForm.amountInput
+            .takeIf { it.isNotBlank() && MoneyParser.parseCents(it) == null }
+            ?.let { "请输入有效金额" }
+        val timeError = normalizedForm.occurredAtInput
+            .takeIf { it.isNotBlank() && parseEditableTime(it) == null }
+            ?.let { "请输入有效时间" }
         TransactionFormUiState(
             form = normalizedForm,
             categories = categoriesForType,
             accounts = accounts,
             isEdit = transactionId != null,
-            canSave = MoneyParser.parseCents(normalizedForm.amountInput) != null &&
+            amountError = amountError,
+            timeError = timeError,
+            canSave = amountError == null &&
+                timeError == null &&
+                MoneyParser.parseCents(normalizedForm.amountInput) != null &&
                 parseEditableTime(normalizedForm.occurredAtInput) != null &&
                 normalizedForm.categoryId != null &&
                 normalizedForm.accountId != null,
@@ -147,6 +157,8 @@ data class TransactionFormUiState(
     val categories: List<CategoryEntity> = emptyList(),
     val accounts: List<AccountEntity> = emptyList(),
     val isEdit: Boolean = false,
+    val amountError: String? = null,
+    val timeError: String? = null,
     val canSave: Boolean = false,
     val saveFinished: Boolean = false,
 )

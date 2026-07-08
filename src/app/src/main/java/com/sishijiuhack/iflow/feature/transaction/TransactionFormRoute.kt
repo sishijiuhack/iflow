@@ -68,6 +68,10 @@ fun TransactionFormRoute(
             onValueChange = viewModel::setAmount,
             label = { Text("金额") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            isError = uiState.amountError != null,
+            supportingText = uiState.amountError?.let { error ->
+                { Text(error) }
+            },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -113,7 +117,10 @@ fun TransactionFormRoute(
             value = uiState.form.occurredAtInput,
             onValueChange = viewModel::setOccurredAtInput,
             label = { Text("时间") },
-            supportingText = { Text("格式：yyyy-MM-dd HH:mm") },
+            isError = uiState.timeError != null,
+            supportingText = {
+                Text(uiState.timeError ?: "格式：yyyy-MM-dd HH:mm")
+            },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
