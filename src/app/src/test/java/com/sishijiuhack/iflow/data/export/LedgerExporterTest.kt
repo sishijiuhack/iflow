@@ -59,6 +59,25 @@ class LedgerExporterTest {
         assertTrue(json.contains("raw\\\\id"))
     }
 
+    @Test
+    fun toJson_escapesControlCharacters() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(
+                        merchant = "Store\bForm\u000C",
+                        note = "hidden\u001Fcontrol",
+                    ),
+                ),
+            )
+        }
+
+        val json = exporter.toJson(snapshot)
+
+        assertTrue(json.contains("Store\\bForm\\f"))
+        assertTrue(json.contains("hidden\\u001fcontrol"))
+    }
+
     private fun sampleSnapshotWithSpecialText(): LedgerExportSnapshot {
         val snapshot = sampleSnapshot()
         val transaction = snapshot.transactions.first().copy(
