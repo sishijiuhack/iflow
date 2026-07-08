@@ -503,6 +503,17 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun setDefaultAccount_ignoresMissingAccountId() = runTest {
+        repository.ensureDefaultData()
+        val defaultAccount = database.accountDao().listAll().first { it.type == AccountType.Alipay }
+        repository.setDefaultAccount(defaultAccount.id)
+
+        repository.setDefaultAccount(404L)
+
+        assertEquals(defaultAccount.id, database.appSettingDao().get()?.defaultAccountId)
+    }
+
+    @Test
     fun exportSnapshot_doesNotUpdateLastExportedAtBeforeFileIsSaved() = runTest {
         repository.ensureDefaultData()
 
