@@ -44,6 +44,13 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toCsv_prefixesUtf8BomBeforeHeader() {
+        val csv = exporter.toCsv(sampleSnapshot())
+
+        assertTrue(csv.startsWith("\uFEFFid,type,amountCents"))
+    }
+
+    @Test
     fun toCsv_escapesQuotesAndNewlines() {
         val csv = exporter.toCsv(sampleSnapshotWithSpecialText())
 

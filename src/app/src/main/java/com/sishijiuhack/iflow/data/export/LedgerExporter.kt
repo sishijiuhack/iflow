@@ -86,6 +86,7 @@ class LedgerExporter {
 
     fun toCsv(snapshot: LedgerExportSnapshot): String {
         return buildString {
+            append(utf8Bom)
             appendLine("id,type,amountCents,category,account,merchant,note,occurredAt,source,status,rawNotificationId,createdAt,updatedAt")
             val categoryMap = snapshot.categories.associateBy { it.id }
             val accountMap = snapshot.accounts.associateBy { it.id }
@@ -146,6 +147,7 @@ class LedgerExporter {
     }
 
     private companion object {
+        const val utf8Bom = "\uFEFF"
         val csvFormulaPrefixes = setOf('=', '+', '-', '@')
     }
 }
