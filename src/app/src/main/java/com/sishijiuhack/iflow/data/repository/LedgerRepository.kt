@@ -281,7 +281,7 @@ class LedgerRepository(
                 amountCents = parsed.amountCents,
                 categoryId = categoryId,
                 accountId = accountId,
-                merchant = parsed.merchant,
+                merchant = parsed.merchant?.trim()?.ifBlank { null },
                 note = "${parsed.sourceApp}通知",
                 occurredAt = parsed.postedAt,
                 source = TransactionSource.Notification,
