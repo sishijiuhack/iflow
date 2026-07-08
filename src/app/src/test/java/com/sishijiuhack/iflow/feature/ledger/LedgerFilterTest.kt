@@ -61,6 +61,15 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesThousandsSeparatedAmountQuery() {
+        val comma = filterTransactions(sampleTransactions, "5,000.00", LedgerTypeFilter.All)
+        val fullWidthComma = filterTransactions(sampleTransactions, "５，０００．００", LedgerTypeFilter.All)
+
+        assertEquals(listOf(2L), comma.map { it.id })
+        assertEquals(listOf(2L), fullWidthComma.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_filtersByType() {
         val result = filterTransactions(sampleTransactions, "", LedgerTypeFilter.Income)
 
