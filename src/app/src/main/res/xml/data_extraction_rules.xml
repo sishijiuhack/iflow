@@ -2,8 +2,12 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="database" path="iflow.db" />
+        <exclude domain="database" path="iflow.db-wal" />
+        <exclude domain="database" path="iflow.db-shm" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="database" path="iflow.db" />
+        <exclude domain="database" path="iflow.db-wal" />
+        <exclude domain="database" path="iflow.db-shm" />
     </device-transfer>
 </data-extraction-rules>
