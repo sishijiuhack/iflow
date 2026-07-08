@@ -27,9 +27,6 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TransactionEntity?
 
-    @Query("SELECT * FROM transactions WHERE status != :deletedStatus ORDER BY occurredAt DESC, id DESC")
-    fun observeActiveTransactions(deletedStatus: TransactionStatus = TransactionStatus.Deleted): Flow<List<TransactionEntity>>
-
     @Query("SELECT * FROM transactions WHERE status = :status ORDER BY occurredAt DESC, id DESC")
     fun observeByStatus(status: TransactionStatus): Flow<List<TransactionEntity>>
 
@@ -41,9 +38,6 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE status != :deletedStatus ORDER BY occurredAt DESC, id DESC")
     suspend fun listActiveTransactions(deletedStatus: TransactionStatus = TransactionStatus.Deleted): List<TransactionEntity>
-
-    @Query("SELECT * FROM transactions WHERE status != :deletedStatus ORDER BY occurredAt DESC, id DESC LIMIT :limit")
-    fun observeRecentActiveTransactions(limit: Int, deletedStatus: TransactionStatus = TransactionStatus.Deleted): Flow<List<TransactionEntity>>
 
     @Query("UPDATE transactions SET status = :status, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateStatus(id: Long, status: TransactionStatus, updatedAt: Long)
