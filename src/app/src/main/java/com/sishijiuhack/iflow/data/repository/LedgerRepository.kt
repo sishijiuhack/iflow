@@ -118,6 +118,10 @@ class LedgerRepository(
         zoneId: ZoneId = ZoneId.systemDefault(),
         month: YearMonth = YearMonth.now(zoneId),
     ): Flow<StatsSnapshot> {
+        val today = java.time.LocalDate.now(zoneId)
+        val todayStart = today.atStartOfDay(zoneId).toInstant().toEpochMilli()
+        val tomorrowStart = today.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+        val last7DaysStart = today.minusDays(6).atStartOfDay(zoneId).toInstant().toEpochMilli()
         val start = month.atDay(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
         val end = month.plusMonths(1).atDay(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
         return combine(
@@ -133,6 +137,16 @@ class LedgerRepository(
                 .sumOf { it.amountCents }
             val expense = confirmed
                 .filter { it.type == TransactionType.Expense }
+                .sumOf { it.amountCents }
+            val todayExpense = confirmed
+                .filter {
+                    it.type == TransactionType.Expense && it.occurredAt in todayStart until tomorrowStart
+                }
+                .sumOf { it.amountCents }
+            val last7DaysExpense = confirmed
+                .filter {
+                    it.type == TransactionType.Expense && it.occurredAt in last7DaysStart until tomorrowStart
+                }
                 .sumOf { it.amountCents }
             val ranking = confirmed
                 .filter { it.type == TransactionType.Expense }
@@ -151,6 +165,8 @@ class LedgerRepository(
                     expenseCents = expense,
                     balanceCents = income - expense,
                 ),
+                todayExpenseCents = todayExpense,
+                last7DaysExpenseCents = last7DaysExpense,
                 categoryExpenses = ranking,
             )
         }
@@ -335,6 +351,8 @@ data class MonthSummary(
 
 data class StatsSnapshot(
     val summary: MonthSummary = MonthSummary(),
+    val todayExpenseCents: Long = 0,
+    val last7DaysExpenseCents: Long = 0,
     val categoryExpenses: List<CategoryExpense> = emptyList(),
 )
 

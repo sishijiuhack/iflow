@@ -31,6 +31,8 @@ fun StatsRoute(
             text = "统计",
             style = MaterialTheme.typography.headlineSmall,
         )
+        Text("今日支出 ${MoneyCents(stats.todayExpenseCents).format()}")
+        Text("近7天支出 ${MoneyCents(stats.last7DaysExpenseCents).format()}")
         Text("本月收入 ${MoneyCents(stats.summary.incomeCents).format()}")
         Text("本月支出 ${MoneyCents(stats.summary.expenseCents).format()}")
         Text("本月净额 ${MoneyCents(stats.summary.balanceCents).format()}")
