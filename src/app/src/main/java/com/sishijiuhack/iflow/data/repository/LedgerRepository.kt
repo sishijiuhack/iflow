@@ -234,6 +234,7 @@ class LedgerRepository(
         ensureDefaultData()
         val settings = appSettingDao.get()
         if (settings?.autoCaptureEnabled == false) return null
+        if (!hasEnabledRuleFor(parsed.packageName)) return null
         if (transactionDao.countByRawNotificationId(parsed.fingerprint) > 0) return null
         val categories = categoryDao.listByType(parsed.type)
         val accounts = accountDao.listAll()
@@ -306,6 +307,12 @@ class LedgerRepository(
                 updatedAt = System.currentTimeMillis(),
             ),
         )
+    }
+
+    private suspend fun hasEnabledRuleFor(packageName: String): Boolean {
+        return notificationRuleDao.listEnabled().any { rule ->
+            packageName == rule.packageName || packageName.contains(rule.packageName, ignoreCase = true)
+        }
     }
 
     private fun TransactionEntity.toListItem(
