@@ -257,6 +257,43 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun exportSnapshot_listsActiveTransactionsInLedgerOrder() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+        val oldestId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 100L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 1_000L,
+            ),
+        )
+        val newestId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 200L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 3_000L,
+            ),
+        )
+        val deletedId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 300L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 2_000L,
+            ),
+        )
+
+        repository.softDeleteTransaction(deletedId)
+
+        val snapshot = repository.exportSnapshot()
+
+        assertEquals(listOf(newestId, oldestId), snapshot.transactions.map { it.id })
+    }
+
+    @Test
     fun observeStats_includesDailyExpensesForLastSevenDays() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val today = LocalDate.now(zone)
