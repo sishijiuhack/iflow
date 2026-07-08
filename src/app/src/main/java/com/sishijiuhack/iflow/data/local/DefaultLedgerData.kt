@@ -9,7 +9,7 @@ import com.sishijiuhack.iflow.domain.model.TransactionType
 
 object DefaultLedgerData {
     const val DefaultAccountId = 1L
-    const val DefaultDirectionPattern = "收款|收入|到账|退款|转入|入账|存入|付款|扣款|支出|消费|支付|转出"
+    const val DefaultDirectionPattern = "收款|收入|到账|退款|转入|入账|存入|工资|付款|扣款|支出|消费|支付|转出"
     const val DefaultMerchantPattern =
         """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|收款户名|收款方|对方|付款方)[:：]\s*([^，,。]+)"""
 
@@ -80,7 +80,7 @@ object DefaultLedgerData {
             packageName = "bank",
             appName = "银行",
             enabled = true,
-            keywords = listOf("交易", "消费", "支出", "付款", "支付", "扣款", "转出", "转入", "入账", "存入", "收入", "到账", "退款"),
+            keywords = listOf("交易", "消费", "支出", "付款", "支付", "扣款", "转出", "转入", "入账", "存入", "工资", "收入", "到账", "退款"),
             amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
             directionPattern = DefaultDirectionPattern,
             merchantPattern = DefaultMerchantPattern,

@@ -58,6 +58,7 @@ class IFlowDatabaseTest {
         assertTrue(rules.all { it.directionPattern.contains("扣款") })
         assertTrue(rules.all { it.directionPattern.contains("入账") })
         assertTrue(rules.all { it.directionPattern.contains("存入") })
+        assertTrue(rules.all { it.directionPattern.contains("工资") })
         assertTrue(rules.all { it.merchantPattern?.contains("商户名称") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("交易商户") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("收款户名") == true })

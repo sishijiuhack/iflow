@@ -99,8 +99,8 @@ class PaymentNotificationParser {
             "pingan",
         )
         val knownPackageHints = listOf("bank", "unionpay", "alipay") + bankPackageHints
-        val paymentKeywords = listOf("支付", "付款", "扣款", "收款", "退款", "消费", "转账", "转入", "入账", "存入", "交易", "支出", "收入", "到账")
-        val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入", "入账", "存入")
+        val paymentKeywords = listOf("支付", "付款", "扣款", "收款", "退款", "消费", "转账", "转入", "入账", "存入", "工资", "交易", "支出", "收入", "到账")
+        val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入", "入账", "存入", "工资")
         val strongExpenseKeywords = listOf("付款", "扣款", "支出", "消费", "转出")
         val expenseKeywords = listOf("付款", "扣款", "支出", "消费", "支付", "转出")
     }
