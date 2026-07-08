@@ -241,6 +241,40 @@ class LedgerExporterTest {
         assertTrue(json.contains("\"keywords\": [\"付款\\\"确认\", \"收款\\\\到账\"]"))
     }
 
+    @Test
+    fun toJson_escapesMetadataFields() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                categories = listOf(
+                    it.categories.first().copy(name = "餐饮\"外卖", icon = "food\\icon"),
+                ),
+                accounts = listOf(
+                    it.accounts.first().copy(name = "银行卡\n工资"),
+                ),
+                notificationRules = listOf(
+                    it.notificationRules.first().copy(
+                        packageName = "com.example\\pay",
+                        appName = "支付\"应用",
+                        amountPattern = "金额\\d+",
+                        directionPattern = "付款\n收款",
+                        merchantPattern = "商户\"(.+)",
+                    ),
+                ),
+            )
+        }
+
+        val json = exporter.toJson(snapshot)
+
+        assertTrue(json.contains("\"name\": \"餐饮\\\"外卖\""))
+        assertTrue(json.contains("\"icon\": \"food\\\\icon\""))
+        assertTrue(json.contains("\"name\": \"银行卡\\n工资\""))
+        assertTrue(json.contains("\"packageName\": \"com.example\\\\pay\""))
+        assertTrue(json.contains("\"appName\": \"支付\\\"应用\""))
+        assertTrue(json.contains("\"amountPattern\": \"金额\\\\d+\""))
+        assertTrue(json.contains("\"directionPattern\": \"付款\\n收款\""))
+        assertTrue(json.contains("\"merchantPattern\": \"商户\\\"(.+)\""))
+    }
+
     private fun sampleSnapshotWithSpecialText(): LedgerExportSnapshot {
         val snapshot = sampleSnapshot()
         val transaction = snapshot.transactions.first().copy(
