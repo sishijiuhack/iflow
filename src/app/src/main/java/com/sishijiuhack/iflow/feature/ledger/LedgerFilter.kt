@@ -49,6 +49,7 @@ fun filterTransactions(
                 transaction.note.orEmpty(),
                 MoneyCents(transaction.amountCents).format(),
                 transaction.amountCents.toPlainAmountText(),
+                transaction.amountCents.toSignedPlainAmountText(transaction.type),
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
         matchesType && matchesDate && matchesAccount && matchesCategory && matchesQuery
     }
@@ -58,6 +59,14 @@ private fun Long.toPlainAmountText(): String {
     val yuan = this / 100
     val cents = (this % 100).toString().padStart(2, '0')
     return "$yuan.$cents"
+}
+
+private fun Long.toSignedPlainAmountText(type: TransactionType): String {
+    val sign = when (type) {
+        TransactionType.Expense -> "-"
+        TransactionType.Income -> "+"
+    }
+    return sign + toPlainAmountText()
 }
 
 private fun LedgerDateFilter.toMillisRange(
