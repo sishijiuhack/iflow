@@ -586,6 +586,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_integerYuanAmountWithZhengSuffix_extractsAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "尾号1234支出人民币500元整，商户：书店",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(50000L, result?.amountCents)
+        assertEquals("书店", result?.merchant)
+    }
+
+    @Test
     fun parse_balanceOnlyAmount_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
