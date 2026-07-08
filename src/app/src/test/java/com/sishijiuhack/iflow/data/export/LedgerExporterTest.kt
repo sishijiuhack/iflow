@@ -51,6 +51,25 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toCsv_neutralizesFormulaLikeTextCells() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(
+                        merchant = "=SUM(A1:A2)",
+                        note = "@cmd",
+                    ),
+                ),
+            )
+        }
+
+        val csv = exporter.toCsv(snapshot)
+
+        assertTrue(csv.contains("'=SUM(A1:A2)"))
+        assertTrue(csv.contains("'@cmd"))
+    }
+
+    @Test
     fun toJson_escapesSpecialCharacters() {
         val json = exporter.toJson(sampleSnapshotWithSpecialText())
 
