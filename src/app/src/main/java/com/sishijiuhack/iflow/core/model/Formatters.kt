@@ -37,9 +37,15 @@ private fun String.normalizeEditableTimeInput(): String {
             '－', '—', 'ー' -> '-'
             '：' -> ':'
             '　' -> ' '
+            '年', '月' -> '-'
+            '日' -> ' '
+            '时' -> ':'
+            '分' -> ' '
             else -> char
         }
     }.joinToString(separator = "")
+        .replace(Regex("\\s+"), " ")
+        .trim()
 }
 
 fun Long.formatSignedMoney(typeName: String): String {

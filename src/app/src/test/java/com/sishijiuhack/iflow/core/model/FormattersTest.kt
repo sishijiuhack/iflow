@@ -34,6 +34,22 @@ class FormattersTest {
     }
 
     @Test
+    fun editableTime_acceptsChineseDateTimeMarkers() {
+        val millis = parseEditableTime("2026年07月08日 23时15分", zone)
+
+        assertNotNull(millis)
+        assertEquals("2026-07-08 23:15", millis!!.formatEditableTime(zone))
+    }
+
+    @Test
+    fun editableTime_acceptsFullWidthChineseDateTimeMarkers() {
+        val millis = parseEditableTime("２０２６年０７月０８日　２３时１５分", zone)
+
+        assertNotNull(millis)
+        assertEquals("2026-07-08 23:15", millis!!.formatEditableTime(zone))
+    }
+
+    @Test
     fun editableTime_rejectsInvalidInput() {
         assertNull(parseEditableTime("2026/07/08 23:15", zone))
         assertNull(parseEditableTime("not time", zone))
