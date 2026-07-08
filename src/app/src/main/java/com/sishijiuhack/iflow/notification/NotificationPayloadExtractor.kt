@@ -18,6 +18,7 @@ object NotificationPayloadExtractor {
                     ?.map { it.toString() }
                     .orEmpty(),
             )
+            .map { it.trim() }
             .filter { it.isNotBlank() }
             .distinct()
             .joinToString(separator = " ")
