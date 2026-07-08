@@ -588,6 +588,29 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun saveManualTransaction_trimsMerchantAndNote() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        val insertedId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 100L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 1_000L,
+            ).copy(
+                merchant = "  便利店  ",
+                note = "  早餐  ",
+            ),
+        )
+
+        val saved = database.transactionDao().getById(insertedId)
+        assertEquals("便利店", saved?.merchant)
+        assertEquals("早餐", saved?.note)
+    }
+
+    @Test
     fun saveManualTransaction_rejectsMissingReferences() = runTest {
         repository.ensureDefaultData()
         val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
