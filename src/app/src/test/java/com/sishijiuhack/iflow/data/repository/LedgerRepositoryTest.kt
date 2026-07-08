@@ -52,6 +52,16 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_ignoresDuplicateFingerprint() = runTest {
+        val firstId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-duplicate"))
+        val secondId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-duplicate"))
+
+        assertTrue(firstId != null)
+        assertNull(secondId)
+        assertEquals(1, database.transactionDao().listActiveTransactions().size)
+    }
+
+    @Test
     fun pendingNotificationTransaction_canBeConfirmedAndSoftDeleted() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-lifecycle"))
 

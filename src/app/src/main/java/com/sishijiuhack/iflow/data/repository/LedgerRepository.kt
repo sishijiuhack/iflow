@@ -268,7 +268,6 @@ class LedgerRepository(
         val settings = appSettingDao.get()
         if (settings?.autoCaptureEnabled == false) return null
         if (!hasEnabledRuleFor(parsed)) return null
-        if (transactionDao.countByRawNotificationId(parsed.fingerprint) > 0) return null
         val categories = categoryDao.listByType(parsed.type)
         val accounts = accountDao.listAll()
         val now = System.currentTimeMillis()
@@ -282,7 +281,7 @@ class LedgerRepository(
             ?: accounts.firstOrNull()?.id
             ?: return null
 
-        return transactionDao.insert(
+        val insertedId = transactionDao.insertIgnoringConflict(
             TransactionEntity(
                 type = parsed.type,
                 amountCents = parsed.amountCents,
@@ -298,6 +297,7 @@ class LedgerRepository(
                 updatedAt = now,
             ),
         )
+        return insertedId.takeIf { it != -1L }
     }
 
     suspend fun softDeleteTransaction(id: Long) {

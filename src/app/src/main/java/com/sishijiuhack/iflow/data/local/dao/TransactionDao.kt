@@ -15,6 +15,9 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(transaction: TransactionEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIgnoringConflict(transaction: TransactionEntity): Long
+
     @Update
     suspend fun update(transaction: TransactionEntity)
 
@@ -45,6 +48,4 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE status = :status")
     fun observeCountByStatus(status: TransactionStatus): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM transactions WHERE rawNotificationId = :rawNotificationId")
-    suspend fun countByRawNotificationId(rawNotificationId: String): Int
 }
