@@ -71,6 +71,8 @@ class IFlowDatabaseTest {
         assertTrue(rules.all { it.merchantPattern?.contains("交易方") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("对手户名") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("收款户名") == true })
+        assertTrue(rules.all { it.merchantPattern?.contains("收款账户") == true })
+        assertTrue(rules.all { it.merchantPattern?.contains("收款人") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("付款账户") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("付款户名") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("付款人") == true })
