@@ -47,3 +47,26 @@ The debug APK is generated at:
 ```text
 src/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+## Device Check
+
+Install the debug build on a connected Android device:
+
+```powershell
+cd src
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+Build the Compose instrumentation test APK:
+
+```powershell
+cd src
+.\gradlew.bat assembleDebugAndroidTest
+```
+
+Run instrumentation tests when a device or emulator is connected:
+
+```powershell
+cd src
+.\gradlew.bat connectedDebugAndroidTest
+```
