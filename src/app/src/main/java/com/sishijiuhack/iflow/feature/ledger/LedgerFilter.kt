@@ -30,7 +30,7 @@ fun filterTransactions(
     nowMillis: Long = System.currentTimeMillis(),
     zoneId: ZoneId = ZoneId.systemDefault(),
 ): List<TransactionListItem> {
-    val normalizedQuery = query.trim()
+    val normalizedQuery = query.normalizeLedgerSearchQuery()
     val dateRange = dateFilter.toMillisRange(nowMillis, zoneId)
     return transactions.filter { transaction ->
         val matchesType = when (typeFilter) {
@@ -53,6 +53,18 @@ fun filterTransactions(
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
         matchesType && matchesDate && matchesAccount && matchesCategory && matchesQuery
     }
+}
+
+private fun String.normalizeLedgerSearchQuery(): String {
+    return trim().map { char ->
+        when (char) {
+            in '０'..'９' -> '0' + (char - '０')
+            '．', '。' -> '.'
+            '＋' -> '+'
+            '－', '—', 'ー' -> '-'
+            else -> char
+        }
+    }.joinToString(separator = "")
 }
 
 private fun Long.toPlainAmountText(): String {

@@ -32,6 +32,15 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesFullWidthAmountQuery() {
+        val unsigned = filterTransactions(sampleTransactions, "１８．００", LedgerTypeFilter.All)
+        val signed = filterTransactions(sampleTransactions, "－１８．００", LedgerTypeFilter.All)
+
+        assertEquals(listOf(1L), unsigned.map { it.id })
+        assertEquals(listOf(1L), signed.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_matchesQueryBySignedIncomeAmount() {
         val result = filterTransactions(sampleTransactions, "+5000.00", LedgerTypeFilter.All)
 
