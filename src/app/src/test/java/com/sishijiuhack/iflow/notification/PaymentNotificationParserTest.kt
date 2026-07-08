@@ -651,6 +651,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_merchantLabelBeforeWhitespaceBoundary_doesNotCaptureTrailingLine() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "支出人民币16.20元 商户：地铁 余额人民币1,000.00元",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+    }
+
+    @Test
     fun parse_leadingServiceFee_usesActualTransactionAmount() {
         val result = parser.parse(
             PaymentNotificationInput(
