@@ -42,6 +42,34 @@ class LedgerExporterTest {
         assertTrue(csv.contains("raw-1,1000,1000"))
     }
 
+    @Test
+    fun toCsv_escapesQuotesAndNewlines() {
+        val csv = exporter.toCsv(sampleSnapshotWithSpecialText())
+
+        assertTrue(csv.contains("\"Store \"\"A\"\"\""))
+        assertTrue(csv.contains("\"line1\nline2\\tail\tend\""))
+    }
+
+    @Test
+    fun toJson_escapesSpecialCharacters() {
+        val json = exporter.toJson(sampleSnapshotWithSpecialText())
+
+        assertTrue(json.contains("\\\"A\\\""))
+        assertTrue(json.contains("line1\\nline2\\\\tail\\tend"))
+        assertTrue(json.contains("raw\\\\id"))
+    }
+
+    private fun sampleSnapshotWithSpecialText(): LedgerExportSnapshot {
+        val snapshot = sampleSnapshot()
+        val transaction = snapshot.transactions.first().copy(
+            merchant = "Store \"A\"",
+            note = "line1\nline2\\tail\tend",
+            rawNotificationId = "raw\\id",
+        )
+
+        return snapshot.copy(transactions = listOf(transaction))
+    }
+
     private fun sampleSnapshot(): LedgerExportSnapshot {
         return LedgerExportSnapshot(
             exportedAt = 1000L,
