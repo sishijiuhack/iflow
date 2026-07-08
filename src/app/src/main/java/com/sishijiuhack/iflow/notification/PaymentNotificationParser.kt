@@ -9,12 +9,7 @@ class PaymentNotificationParser {
         val combined = listOf(input.title, input.text).joinToString(" ")
         if (!looksLikePayment(input.packageName, combined)) return null
 
-        val amountCents = amountRegex.find(combined)
-            ?.groups
-            ?.let { groups -> groups[1]?.value ?: groups[2]?.value }
-            ?.replace(",", "")
-            ?.replace("，", "")
-            ?.let(MoneyParser::parseCents)
+        val amountCents = extractAmountCents(combined)
             ?: return null
 
         val directionText = merchantLabelRegex.replace(combined, "")
@@ -70,6 +65,23 @@ class PaymentNotificationParser {
         return merchant?.trim(' ', '，', ',', '。')?.takeIf { it.isNotBlank() }
     }
 
+    private fun extractAmountCents(text: String): Long? {
+        return amountRegex.findAll(text).firstNotNullOfOrNull { match ->
+            if (match.isBalanceAmount(text)) return@firstNotNullOfOrNull null
+            match.groups
+                .let { groups -> groups[1]?.value ?: groups[2]?.value }
+                ?.replace(",", "")
+                ?.replace("，", "")
+                ?.let(MoneyParser::parseCents)
+        }
+    }
+
+    private fun MatchResult.isBalanceAmount(text: String): Boolean {
+        val contextStart = (range.first - 8).coerceAtLeast(0)
+        val leadingContext = text.substring(contextStart, range.first)
+        return balanceLabels.any { leadingContext.contains(it) }
+    }
+
     private companion object {
         private const val amountNumberPattern = """(?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?"""
         val amountRegex = Regex(
@@ -112,6 +124,7 @@ class PaymentNotificationParser {
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入", "入账", "存入", "工资", "贷记")
         val strongExpenseKeywords = listOf("付款", "扣款", "支出", "消费", "转出", "借记")
         val expenseKeywords = listOf("付款", "扣款", "支出", "消费", "支付", "转出", "借记")
+        val balanceLabels = listOf("余额", "账户余额", "可用余额")
     }
 }
 
