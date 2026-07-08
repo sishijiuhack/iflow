@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.data.repository.CategoryExpense
+import com.sishijiuhack.iflow.data.repository.DailyExpense
 
 @Composable
 fun StatsRoute(
@@ -24,6 +25,7 @@ fun StatsRoute(
 ) {
     val stats by viewModel.stats.collectAsStateWithLifecycle()
     val monthlyMax = maxOf(stats.summary.incomeCents, stats.summary.expenseCents, 1L)
+    val dailyMax = stats.dailyExpenses.maxOfOrNull { it.amountCents } ?: 1L
     val categoryMax = stats.categoryExpenses.maxOfOrNull { it.amountCents } ?: 1L
 
     Column(
@@ -56,6 +58,16 @@ fun StatsRoute(
             progress = stats.summary.expenseCents.toFloat() / monthlyMax.toFloat(),
         )
         Text(
+            text = "近 7 天每日支出",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        stats.dailyExpenses.forEach { item ->
+            DailyExpenseBar(
+                item = item,
+                progress = item.amountCents.toFloat() / dailyMax.toFloat(),
+            )
+        }
+        Text(
             text = "分类支出排行",
             style = MaterialTheme.typography.titleMedium,
         )
@@ -81,6 +93,20 @@ private fun StatBar(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("$label ${MoneyCents(amountCents).format()}")
+        LinearProgressIndicator(
+            progress = { progress.coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun DailyExpenseBar(
+    item: DailyExpense,
+    progress: Float,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("${item.label} ${MoneyCents(item.amountCents).format()}")
         LinearProgressIndicator(
             progress = { progress.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),

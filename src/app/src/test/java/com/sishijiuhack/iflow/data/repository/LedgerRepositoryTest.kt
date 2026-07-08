@@ -7,6 +7,7 @@ import com.sishijiuhack.iflow.data.local.IFlowDatabase
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import com.sishijiuhack.iflow.notification.PaymentNotificationParseResult
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -16,6 +17,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 
 @RunWith(RobolectricTestRunner::class)
 class LedgerRepositoryTest {
@@ -131,6 +135,47 @@ class LedgerRepositoryTest {
         assertEquals(false, database.notificationRuleDao().getById(rule.id)?.enabled)
     }
 
+    @Test
+    fun observeStats_includesDailyExpensesForLastSevenDays() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val today = LocalDate.now(zone)
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 100L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = today.atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 200L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = today.minusDays(6).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 300L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = today.minusDays(7).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+
+        val stats = repository.observeStats(zone, YearMonth.now(zone)).first()
+
+        assertEquals(300L, stats.last7DaysExpenseCents)
+        assertEquals(7, stats.dailyExpenses.size)
+        assertEquals(200L, stats.dailyExpenses.first().amountCents)
+        assertEquals(100L, stats.dailyExpenses.last().amountCents)
+    }
+
     private fun sampleParsed(fingerprint: String): PaymentNotificationParseResult {
         return PaymentNotificationParseResult(
             amountCents = 1200L,
@@ -142,6 +187,23 @@ class LedgerRepositoryTest {
             rawTitle = "微信支付",
             rawText = "向便利店付款12.00元",
             packageName = "com.tencent.mm",
+        )
+    }
+
+    private fun sampleTransaction(
+        amountCents: Long,
+        categoryId: Long,
+        accountId: Long,
+        occurredAt: Long,
+    ): SaveTransactionInput {
+        return SaveTransactionInput(
+            type = TransactionType.Expense,
+            amountCents = amountCents,
+            categoryId = categoryId,
+            accountId = accountId,
+            merchant = "",
+            note = "",
+            occurredAt = occurredAt,
         )
     }
 }

@@ -102,12 +102,15 @@ class LedgerRepository(
         val end = month.plusMonths(1).atDay(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
         return transactionDao.observeActiveTransactions().map { transactions ->
             val confirmed = transactions.filter {
-                it.status == TransactionStatus.Confirmed && it.occurredAt in start until end
+                it.status == TransactionStatus.Confirmed
             }
-            val income = confirmed
+            val monthConfirmed = confirmed.filter {
+                it.occurredAt in start until end
+            }
+            val income = monthConfirmed
                 .filter { it.type == TransactionType.Income }
                 .sumOf { it.amountCents }
-            val expense = confirmed
+            val expense = monthConfirmed
                 .filter { it.type == TransactionType.Expense }
                 .sumOf { it.amountCents }
             MonthSummary(
@@ -134,12 +137,15 @@ class LedgerRepository(
         ) { transactions, categories ->
             val categoryMap = categories.associateBy { it.id }
             val confirmed = transactions.filter {
-                it.status == TransactionStatus.Confirmed && it.occurredAt in start until end
+                it.status == TransactionStatus.Confirmed
             }
-            val income = confirmed
+            val monthConfirmed = confirmed.filter {
+                it.occurredAt in start until end
+            }
+            val income = monthConfirmed
                 .filter { it.type == TransactionType.Income }
                 .sumOf { it.amountCents }
-            val expense = confirmed
+            val expense = monthConfirmed
                 .filter { it.type == TransactionType.Expense }
                 .sumOf { it.amountCents }
             val todayExpense = confirmed
@@ -152,7 +158,20 @@ class LedgerRepository(
                     it.type == TransactionType.Expense && it.occurredAt in last7DaysStart until tomorrowStart
                 }
                 .sumOf { it.amountCents }
-            val ranking = confirmed
+            val dailyExpenses = (0..6).map { offset ->
+                val day = today.minusDays((6 - offset).toLong())
+                val dayStart = day.atStartOfDay(zoneId).toInstant().toEpochMilli()
+                val dayEnd = day.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+                DailyExpense(
+                    label = "${day.monthValue}/${day.dayOfMonth}",
+                    amountCents = confirmed
+                        .filter {
+                            it.type == TransactionType.Expense && it.occurredAt in dayStart until dayEnd
+                        }
+                        .sumOf { it.amountCents },
+                )
+            }
+            val ranking = monthConfirmed
                 .filter { it.type == TransactionType.Expense }
                 .groupBy { it.categoryId }
                 .map { (categoryId, rows) ->
@@ -171,6 +190,7 @@ class LedgerRepository(
                 ),
                 todayExpenseCents = todayExpense,
                 last7DaysExpenseCents = last7DaysExpense,
+                dailyExpenses = dailyExpenses,
                 categoryExpenses = ranking,
             )
         }
@@ -384,7 +404,13 @@ data class StatsSnapshot(
     val summary: MonthSummary = MonthSummary(),
     val todayExpenseCents: Long = 0,
     val last7DaysExpenseCents: Long = 0,
+    val dailyExpenses: List<DailyExpense> = emptyList(),
     val categoryExpenses: List<CategoryExpense> = emptyList(),
+)
+
+data class DailyExpense(
+    val label: String,
+    val amountCents: Long,
 )
 
 data class CategoryExpense(
