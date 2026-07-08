@@ -1,5 +1,7 @@
 package com.sishijiuhack.iflow.feature.transaction
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,15 +18,22 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.domain.model.TransactionType
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun TransactionFormRoute(
@@ -32,10 +41,55 @@ fun TransactionFormRoute(
     viewModel: TransactionFormViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val zoneId = ZoneId.systemDefault()
+    val pickerDateTime = remember(uiState.pickerTimeMillis) {
+        Instant.ofEpochMilli(uiState.pickerTimeMillis)
+            .atZone(zoneId)
+            .toLocalDateTime()
+    }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.saveFinished) {
         if (uiState.saveFinished) {
             onClose()
+        }
+    }
+
+    if (showDatePicker) {
+        DisposableEffect(context, pickerDateTime) {
+            val dialog = DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    viewModel.setOccurredAtDate(year, month, dayOfMonth)
+                    showDatePicker = false
+                },
+                pickerDateTime.year,
+                pickerDateTime.monthValue - 1,
+                pickerDateTime.dayOfMonth,
+            )
+            dialog.setOnDismissListener { showDatePicker = false }
+            dialog.show()
+            onDispose { dialog.dismiss() }
+        }
+    }
+
+    if (showTimePicker) {
+        DisposableEffect(context, pickerDateTime) {
+            val dialog = TimePickerDialog(
+                context,
+                { _, hour, minute ->
+                    viewModel.setOccurredAtTime(hour, minute)
+                    showTimePicker = false
+                },
+                pickerDateTime.hour,
+                pickerDateTime.minute,
+                true,
+            )
+            dialog.setOnDismissListener { showTimePicker = false }
+            dialog.show()
+            onDispose { dialog.dismiss() }
         }
     }
 
@@ -124,9 +178,8 @@ fun TransactionFormRoute(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             OutlinedTextField(
                 value = uiState.form.occurredAtInput,
@@ -137,10 +190,20 @@ fun TransactionFormRoute(
                     Text(uiState.timeError ?: "格式：yyyy-MM-dd HH:mm")
                 },
                 singleLine = true,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
             )
-            TextButton(onClick = viewModel::setOccurredAtNow) {
-                Text("现在")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TextButton(onClick = { showDatePicker = true }) {
+                    Text("日期")
+                }
+                TextButton(onClick = { showTimePicker = true }) {
+                    Text("时间")
+                }
+                TextButton(onClick = viewModel::setOccurredAtNow) {
+                    Text("现在")
+                }
             }
         }
 

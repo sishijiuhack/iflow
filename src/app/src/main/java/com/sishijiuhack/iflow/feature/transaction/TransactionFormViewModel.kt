@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class TransactionFormViewModel(
     application: Application,
@@ -53,6 +56,7 @@ class TransactionFormViewModel(
         val timeError = normalizedForm.occurredAtInput
             .takeIf { it.isNotBlank() && parseEditableTime(it) == null }
             ?.let { "请输入有效时间" }
+        val parsedTime = parseEditableTime(normalizedForm.occurredAtInput)
         TransactionFormUiState(
             form = normalizedForm,
             categories = categoriesForType,
@@ -60,10 +64,11 @@ class TransactionFormViewModel(
             isEdit = transactionId != null,
             amountError = amountError,
             timeError = timeError,
+            pickerTimeMillis = parsedTime ?: normalizedForm.occurredAt,
             canSave = amountError == null &&
                 timeError == null &&
                 MoneyParser.parseCents(normalizedForm.amountInput) != null &&
-                parseEditableTime(normalizedForm.occurredAtInput) != null &&
+                parsedTime != null &&
                 normalizedForm.categoryId != null &&
                 normalizedForm.accountId != null,
             saveFinished = finished,
@@ -137,6 +142,21 @@ class TransactionFormViewModel(
         }
     }
 
+    fun setOccurredAtDate(year: Int, monthIndex: Int, dayOfMonth: Int) {
+        val updated = currentEditableDateTime()
+            .withYear(year)
+            .withMonth(monthIndex + 1)
+            .withDayOfMonth(dayOfMonth)
+        updateOccurredAt(updated)
+    }
+
+    fun setOccurredAtTime(hour: Int, minute: Int) {
+        val updated = currentEditableDateTime()
+            .withHour(hour)
+            .withMinute(minute)
+        updateOccurredAt(updated)
+    }
+
     fun save() {
         val form = formState.value
         val amountCents = MoneyParser.parseCents(form.amountInput) ?: return
@@ -160,6 +180,27 @@ class TransactionFormViewModel(
             saveFinished.value = true
         }
     }
+
+    private fun currentEditableDateTime(): LocalDateTime {
+        val form = formState.value
+        val millis = parseEditableTime(form.occurredAtInput) ?: form.occurredAt
+        return Instant.ofEpochMilli(millis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+    }
+
+    private fun updateOccurredAt(dateTime: LocalDateTime) {
+        val millis = dateTime
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        formState.update {
+            it.copy(
+                occurredAt = millis,
+                occurredAtInput = millis.formatEditableTime(),
+            )
+        }
+    }
 }
 
 data class TransactionFormUiState(
@@ -169,6 +210,7 @@ data class TransactionFormUiState(
     val isEdit: Boolean = false,
     val amountError: String? = null,
     val timeError: String? = null,
+    val pickerTimeMillis: Long = System.currentTimeMillis(),
     val canSave: Boolean = false,
     val saveFinished: Boolean = false,
 )
