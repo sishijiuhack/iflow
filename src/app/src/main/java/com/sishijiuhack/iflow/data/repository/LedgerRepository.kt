@@ -230,6 +230,10 @@ class LedgerRepository(
         val existing = input.id?.let { transactionDao.getById(it) }
         require(input.id == null || existing != null) { "Transaction to update was not found." }
         require(existing?.status != TransactionStatus.Deleted) { "Deleted transactions cannot be edited." }
+        val category = categoryDao.getById(input.categoryId)
+        require(category != null) { "Transaction category was not found." }
+        require(category.type == input.type) { "Transaction category type does not match the transaction type." }
+        require(accountDao.getById(input.accountId) != null) { "Transaction account was not found." }
         val entity = TransactionEntity(
             id = input.id ?: 0L,
             type = input.type,

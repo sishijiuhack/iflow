@@ -392,6 +392,62 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun saveManualTransaction_rejectsMissingReferences() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = 100L,
+                    categoryId = 404L,
+                    accountId = accountId,
+                    occurredAt = 1_000L,
+                ),
+            )
+            fail("Expected IllegalArgumentException for missing category.")
+        } catch (_: IllegalArgumentException) {
+        }
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = 100L,
+                    categoryId = categoryId,
+                    accountId = 404L,
+                    occurredAt = 1_000L,
+                ),
+            )
+            fail("Expected IllegalArgumentException for missing account.")
+        } catch (_: IllegalArgumentException) {
+        }
+
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
+    fun saveManualTransaction_rejectsCategoryTypeMismatch() = runTest {
+        repository.ensureDefaultData()
+        val incomeCategoryId = database.categoryDao().listByType(TransactionType.Income).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = 100L,
+                    categoryId = incomeCategoryId,
+                    accountId = accountId,
+                    occurredAt = 1_000L,
+                ),
+            )
+            fail("Expected IllegalArgumentException for category type mismatch.")
+        } catch (_: IllegalArgumentException) {
+        }
+
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
     fun saveManualTransaction_rejectsMissingUpdateTarget() = runTest {
         repository.ensureDefaultData()
         val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
