@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -74,6 +75,18 @@ fun LedgerRoute(
                 label = { Text("收入") },
             )
         }
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(dateFilterOptions) { option ->
+                FilterChip(
+                    selected = uiState.dateFilter == option.filter,
+                    onClick = { viewModel.setDateFilter(option.filter) },
+                    label = { Text(option.label) },
+                )
+            }
+        }
         if (uiState.transactions.isEmpty()) {
             Text("还没有流水。")
         } else {
@@ -119,3 +132,15 @@ fun LedgerRoute(
         }
     }
 }
+
+private data class DateFilterOption(
+    val filter: LedgerDateFilter,
+    val label: String,
+)
+
+private val dateFilterOptions = listOf(
+    DateFilterOption(LedgerDateFilter.All, "全部日期"),
+    DateFilterOption(LedgerDateFilter.Today, "今天"),
+    DateFilterOption(LedgerDateFilter.Last7Days, "近7天"),
+    DateFilterOption(LedgerDateFilter.ThisMonth, "本月"),
+)

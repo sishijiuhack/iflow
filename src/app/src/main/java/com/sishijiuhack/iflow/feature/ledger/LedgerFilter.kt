@@ -2,6 +2,9 @@ package com.sishijiuhack.iflow.feature.ledger
 
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import com.sishijiuhack.iflow.domain.model.TransactionType
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 enum class LedgerTypeFilter {
     All,
@@ -9,18 +12,30 @@ enum class LedgerTypeFilter {
     Income,
 }
 
+enum class LedgerDateFilter {
+    All,
+    Today,
+    Last7Days,
+    ThisMonth,
+}
+
 fun filterTransactions(
     transactions: List<TransactionListItem>,
     query: String,
     typeFilter: LedgerTypeFilter,
+    dateFilter: LedgerDateFilter = LedgerDateFilter.All,
+    nowMillis: Long = System.currentTimeMillis(),
+    zoneId: ZoneId = ZoneId.systemDefault(),
 ): List<TransactionListItem> {
     val normalizedQuery = query.trim()
+    val dateRange = dateFilter.toMillisRange(nowMillis, zoneId)
     return transactions.filter { transaction ->
         val matchesType = when (typeFilter) {
             LedgerTypeFilter.All -> true
             LedgerTypeFilter.Expense -> transaction.type == TransactionType.Expense
             LedgerTypeFilter.Income -> transaction.type == TransactionType.Income
         }
+        val matchesDate = dateRange == null || transaction.occurredAt in dateRange
         val matchesQuery = normalizedQuery.isBlank() ||
             listOf(
                 transaction.categoryName,
@@ -28,6 +43,26 @@ fun filterTransactions(
                 transaction.merchant.orEmpty(),
                 transaction.note.orEmpty(),
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
-        matchesType && matchesQuery
+        matchesType && matchesDate && matchesQuery
     }
+}
+
+private fun LedgerDateFilter.toMillisRange(
+    nowMillis: Long,
+    zoneId: ZoneId,
+): LongRange? {
+    if (this == LedgerDateFilter.All) return null
+    val today = Instant.ofEpochMilli(nowMillis).atZone(zoneId).toLocalDate()
+    val startDate = when (this) {
+        LedgerDateFilter.All -> return null
+        LedgerDateFilter.Today -> today
+        LedgerDateFilter.Last7Days -> today.minusDays(6)
+        LedgerDateFilter.ThisMonth -> today.withDayOfMonth(1)
+    }
+    val endExclusive = today.plusDays(1).startMillis(zoneId)
+    return startDate.startMillis(zoneId)..<endExclusive
+}
+
+private fun LocalDate.startMillis(zoneId: ZoneId): Long {
+    return atStartOfDay(zoneId).toInstant().toEpochMilli()
 }

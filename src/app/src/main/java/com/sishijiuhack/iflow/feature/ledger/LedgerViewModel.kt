@@ -17,16 +17,24 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     private val repository = application.appContainer().ledgerRepository
     private val query = MutableStateFlow("")
     private val typeFilter = MutableStateFlow(LedgerTypeFilter.All)
+    private val dateFilter = MutableStateFlow(LedgerDateFilter.All)
 
     val uiState: StateFlow<LedgerUiState> = combine(
         repository.observeTransactions(),
         query,
         typeFilter,
-    ) { transactions, query, typeFilter ->
+        dateFilter,
+    ) { transactions, query, typeFilter, dateFilter ->
         LedgerUiState(
             query = query,
             typeFilter = typeFilter,
-            transactions = filterTransactions(transactions, query, typeFilter),
+            dateFilter = dateFilter,
+            transactions = filterTransactions(
+                transactions = transactions,
+                query = query,
+                typeFilter = typeFilter,
+                dateFilter = dateFilter,
+            ),
         )
     }
         .stateIn(
@@ -54,10 +62,15 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     fun setTypeFilter(value: LedgerTypeFilter) {
         typeFilter.update { value }
     }
+
+    fun setDateFilter(value: LedgerDateFilter) {
+        dateFilter.update { value }
+    }
 }
 
 data class LedgerUiState(
     val query: String = "",
     val typeFilter: LedgerTypeFilter = LedgerTypeFilter.All,
+    val dateFilter: LedgerDateFilter = LedgerDateFilter.All,
     val transactions: List<TransactionListItem> = emptyList(),
 )
