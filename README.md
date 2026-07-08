@@ -17,6 +17,8 @@ The app focuses on a quiet daily workflow:
 
 iFlow is designed as a private local ledger. Data is stored on the device by default. The app does not upload ledger data, does not use a cloud backend, and does not include third-party analytics SDKs.
 
+Android system backup is disabled for the app, and the ledger database is excluded from Android data extraction rules.
+
 Notification content is used only for local payment parsing when notification access is enabled by the user. Manual bookkeeping works without notification access.
 
 ## Tech Stack
