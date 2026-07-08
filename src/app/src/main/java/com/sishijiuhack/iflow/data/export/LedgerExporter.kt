@@ -148,6 +148,6 @@ class LedgerExporter {
 
     private companion object {
         const val utf8Bom = "\uFEFF"
-        val csvFormulaPrefixes = setOf('=', '+', '-', '@')
+        val csvFormulaPrefixes = setOf('=', '+', '-', '@', '＝', '＋', '－', '＠')
     }
 }
