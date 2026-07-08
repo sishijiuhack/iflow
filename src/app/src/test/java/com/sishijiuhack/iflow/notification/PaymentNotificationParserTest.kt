@@ -149,6 +149,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_amountWithFullWidthThousandsSeparator_extractsFullAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "支出1，234.56元，商户：家电城",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(123456L, result?.amountCents)
+        assertEquals("家电城", result?.merchant)
+    }
+
+    @Test
     fun parse_irrelevantNotification_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
