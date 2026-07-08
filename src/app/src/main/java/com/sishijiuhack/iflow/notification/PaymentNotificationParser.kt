@@ -72,7 +72,7 @@ class PaymentNotificationParser {
 
     private companion object {
         private const val amountNumberPattern = """(?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?"""
-        val amountRegex = Regex("""(?:¥|￥|人民币|金额)\s*($amountNumberPattern)|($amountNumberPattern)\s*元""")
+        val amountRegex = Regex("""(?:¥|￥|人民币|RMB|CNY|金额)\s*($amountNumberPattern)|($amountNumberPattern)\s*元""")
         val merchantRegexes = listOf(
             Regex("""(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)"""),
             Regex("""(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款方|对方|付款方)[:：]\s*([^，,。]+)"""),
