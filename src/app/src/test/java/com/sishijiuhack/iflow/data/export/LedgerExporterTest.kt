@@ -36,8 +36,9 @@ class LedgerExporterTest {
     fun toCsv_escapesCommaInNote() {
         val csv = exporter.toCsv(sampleSnapshot())
 
-        assertTrue(csv.contains("id,type,amountCents"))
+        assertTrue(csv.contains("id,type,amountCents,category,account,merchant,note,occurredAt,source,status,rawNotificationId,createdAt,updatedAt"))
         assertTrue(csv.contains("\"hello,world\""))
+        assertTrue(csv.contains("raw-1,1000,1000"))
     }
 
     private fun sampleSnapshot(): LedgerExportSnapshot {
@@ -73,7 +74,7 @@ class LedgerExporterTest {
                     occurredAt = 1000L,
                     source = TransactionSource.Manual,
                     status = TransactionStatus.Confirmed,
-                    rawNotificationId = null,
+                    rawNotificationId = "raw-1",
                     createdAt = 1000L,
                     updatedAt = 1000L,
                 ),

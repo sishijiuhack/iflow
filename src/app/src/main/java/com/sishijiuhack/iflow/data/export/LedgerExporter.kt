@@ -84,7 +84,7 @@ class LedgerExporter {
 
     fun toCsv(snapshot: LedgerExportSnapshot): String {
         return buildString {
-            appendLine("id,type,amountCents,category,account,merchant,note,occurredAt,source,status")
+            appendLine("id,type,amountCents,category,account,merchant,note,occurredAt,source,status,rawNotificationId,createdAt,updatedAt")
             val categoryMap = snapshot.categories.associateBy { it.id }
             val accountMap = snapshot.accounts.associateBy { it.id }
             snapshot.transactions.forEach { transaction ->
@@ -100,6 +100,9 @@ class LedgerExporter {
                         transaction.occurredAt.toString(),
                         transaction.source.toString(),
                         transaction.status.toString(),
+                        transaction.rawNotificationId.orEmpty(),
+                        transaction.createdAt.toString(),
+                        transaction.updatedAt.toString(),
                     ).joinToString(",") { it.escapeCsv() },
                 )
             }
