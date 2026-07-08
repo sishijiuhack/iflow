@@ -6,11 +6,12 @@ The app focuses on a quiet daily workflow:
 
 - Manual income and expense entry.
 - Local Room database storage.
-- Transaction list with edit and soft delete.
+- Transaction list with edit, soft delete, search, date filters, account filters, and category filters.
 - Notification-listener framework for payment notification parsing.
 - Pending queue for automatically parsed transactions.
-- Monthly income, expense, balance, and category ranking.
-- Local JSON and CSV export.
+- Monthly income, expense, balance, short-term expense summaries, and category ranking.
+- Settings for notification capture, auto-confirm behavior, and the default account.
+- Local JSON and CSV file export through the Android document picker.
 
 ## Privacy
 
