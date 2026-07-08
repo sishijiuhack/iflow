@@ -122,6 +122,32 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toJson_includesPendingTransactionsForBackup() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(
+                        id = 1L,
+                        merchant = "Confirmed Store",
+                        status = TransactionStatus.Confirmed,
+                    ),
+                    it.transactions.first().copy(
+                        id = 2L,
+                        merchant = "Pending Store",
+                        status = TransactionStatus.Pending,
+                    ),
+                ),
+            )
+        }
+
+        val json = exporter.toJson(snapshot)
+
+        assertTrue(json.contains("Confirmed Store"))
+        assertTrue(json.contains("Pending Store"))
+        assertTrue(json.contains("\"status\": \"Pending\""))
+    }
+
+    @Test
     fun toJson_escapesSpecialCharacters() {
         val json = exporter.toJson(sampleSnapshotWithSpecialText())
 
