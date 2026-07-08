@@ -10,6 +10,25 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class NotificationPayloadExtractorTest {
     @Test
+    fun titleFrom_fallsBackToBigTitle() {
+        val extras = Bundle().apply {
+            putCharSequence(Notification.EXTRA_TITLE_BIG, "Expanded payment title")
+        }
+
+        assertEquals("Expanded payment title", NotificationPayloadExtractor.titleFrom(extras))
+    }
+
+    @Test
+    fun titleFrom_prefersNormalTitleOverBigTitle() {
+        val extras = Bundle().apply {
+            putCharSequence(Notification.EXTRA_TITLE, "Payment title")
+            putCharSequence(Notification.EXTRA_TITLE_BIG, "Expanded payment title")
+        }
+
+        assertEquals("Payment title", NotificationPayloadExtractor.titleFrom(extras))
+    }
+
+    @Test
     fun textFrom_includesMultiLineNotificationText() {
         val extras = Bundle().apply {
             putCharSequence(Notification.EXTRA_TITLE, "交易提醒")

@@ -5,7 +5,12 @@ import android.os.Bundle
 
 object NotificationPayloadExtractor {
     fun titleFrom(extras: Bundle): String {
-        return extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
+        return (
+            extras.getCharSequence(Notification.EXTRA_TITLE)
+                ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)
+            )
+            ?.toString()
+            .orEmpty()
     }
 
     fun textFrom(extras: Bundle): String {
