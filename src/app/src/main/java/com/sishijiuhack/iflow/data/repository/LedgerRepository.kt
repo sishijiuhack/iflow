@@ -229,6 +229,7 @@ class LedgerRepository(
         val now = System.currentTimeMillis()
         val existing = input.id?.let { transactionDao.getById(it) }
         require(input.id == null || existing != null) { "Transaction to update was not found." }
+        require(existing?.status != TransactionStatus.Deleted) { "Deleted transactions cannot be edited." }
         val entity = TransactionEntity(
             id = input.id ?: 0L,
             type = input.type,

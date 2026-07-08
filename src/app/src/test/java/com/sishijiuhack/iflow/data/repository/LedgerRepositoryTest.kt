@@ -398,6 +398,38 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun saveManualTransaction_rejectsDeletedUpdateTarget() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+        val id = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 100L,
+                categoryId = categoryId,
+                accountId = accountId,
+                occurredAt = 1_000L,
+            ),
+        )
+
+        repository.softDeleteTransaction(id)
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = 200L,
+                    categoryId = categoryId,
+                    accountId = accountId,
+                    occurredAt = 2_000L,
+                ).copy(id = id),
+            )
+            fail("Expected IllegalArgumentException for deleted update target.")
+        } catch (_: IllegalArgumentException) {
+        }
+
+        assertEquals(TransactionStatus.Deleted, database.transactionDao().getById(id)?.status)
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
     fun observeStats_includesDailyExpensesForLastSevenDays() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val today = LocalDate.now(zone)
