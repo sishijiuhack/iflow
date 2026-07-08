@@ -31,6 +31,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sishijiuhack.iflow.core.model.formatLedgerTime
 
 @Composable
 fun SettingsRoute(
@@ -146,6 +147,7 @@ fun SettingsRoute(
             }
         }
         Text("本地导出", style = MaterialTheme.typography.titleMedium)
+        Text("最近导出：${uiState.settings?.lastExportedAt?.formatLedgerTime() ?: "从未导出"}")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = viewModel::exportJson) {
                 Text("导出 JSON")
