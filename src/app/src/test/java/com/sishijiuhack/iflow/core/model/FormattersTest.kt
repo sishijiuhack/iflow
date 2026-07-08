@@ -26,6 +26,17 @@ class FormattersTest {
     }
 
     @Test
+    fun editableTime_acceptsCopiedSpacing() {
+        val noBreakSpace = parseEditableTime("2026-07-08\u00A023:15", zone)
+        val narrowNoBreakSpace = parseEditableTime("2026-07-08\u202F23:15", zone)
+
+        assertNotNull(noBreakSpace)
+        assertNotNull(narrowNoBreakSpace)
+        assertEquals("2026-07-08 23:15", noBreakSpace!!.formatEditableTime(zone))
+        assertEquals("2026-07-08 23:15", narrowNoBreakSpace!!.formatEditableTime(zone))
+    }
+
+    @Test
     fun editableTime_acceptsFullWidthUserInput() {
         val millis = parseEditableTime("２０２６－０７－０８　２３：１５", zone)
 

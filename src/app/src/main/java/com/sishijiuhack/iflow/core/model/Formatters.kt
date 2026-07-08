@@ -42,7 +42,7 @@ private fun String.normalizeEditableTimeInput(): String {
             '日' -> ' '
             '时' -> ':'
             '分' -> ' '
-            else -> char
+            else -> if (Character.isSpaceChar(char)) ' ' else char
         }
     }.joinToString(separator = "")
         .replace(Regex("\\s+"), " ")
