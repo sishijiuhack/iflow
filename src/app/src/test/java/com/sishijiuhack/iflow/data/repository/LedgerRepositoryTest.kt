@@ -540,6 +540,21 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun exportSnapshot_includesPendingTransactionsForBackup() = runTest {
+        val pendingId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-export-pending"))
+
+        assertTrue(pendingId != null)
+
+        val snapshot = repository.exportSnapshot()
+
+        assertEquals(listOf(pendingId), snapshot.transactions.map { it.id })
+        assertEquals(
+            TransactionStatus.Pending,
+            snapshot.transactions.first().status,
+        )
+    }
+
+    @Test
     fun saveManualTransaction_rejectsNonPositiveAmount() = runTest {
         repository.ensureDefaultData()
         val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
