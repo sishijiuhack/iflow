@@ -52,6 +52,13 @@ class MoneyParserTest {
     }
 
     @Test
+    fun parseCents_acceptsKuaiAmountInput() {
+        assertEquals(1200L, MoneyParser.parseCents("12块"))
+        assertEquals(1200L, MoneyParser.parseCents("１２块整"))
+        assertTrue(MoneyParser.isPotentialAmount("CNY 12块"))
+    }
+
+    @Test
     fun parseCents_rejectsInvalidAmounts() {
         assertNull(MoneyParser.parseCents(""))
         assertNull(MoneyParser.parseCents("."))
