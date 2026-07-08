@@ -87,6 +87,25 @@ fun LedgerRoute(
                 )
             }
         }
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                FilterChip(
+                    selected = uiState.accountFilter == null,
+                    onClick = { viewModel.setAccountFilter(null) },
+                    label = { Text("全部账户") },
+                )
+            }
+            items(uiState.accounts, key = { it.id }) { account ->
+                FilterChip(
+                    selected = uiState.accountFilter == account.id,
+                    onClick = { viewModel.setAccountFilter(account.id) },
+                    label = { Text(account.name) },
+                )
+            }
+        }
         if (uiState.transactions.isEmpty()) {
             Text("还没有流水。")
         } else {

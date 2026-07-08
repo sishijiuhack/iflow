@@ -32,6 +32,18 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_filtersByAccount() {
+        val result = filterTransactions(
+            transactions = sampleTransactions,
+            query = "",
+            typeFilter = LedgerTypeFilter.All,
+            accountId = 20L,
+        )
+
+        assertEquals(listOf(2L), result.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_filtersToday() {
         val result = filterTransactions(
             transactions = sampleTransactions,
@@ -80,7 +92,9 @@ class LedgerFilterTest {
             id = 1L,
             type = TransactionType.Expense,
             amountCents = 1800L,
+            categoryId = 10L,
             categoryName = "餐饮",
+            accountId = 19L,
             accountName = "现金",
             merchant = "咖啡店",
             note = "早餐",
@@ -92,7 +106,9 @@ class LedgerFilterTest {
             id = 2L,
             type = TransactionType.Income,
             amountCents = 500000L,
+            categoryId = 11L,
             categoryName = "工资",
+            accountId = 20L,
             accountName = "银行卡",
             merchant = null,
             note = "七月工资",

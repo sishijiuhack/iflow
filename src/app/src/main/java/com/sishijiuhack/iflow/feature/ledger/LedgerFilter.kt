@@ -24,6 +24,7 @@ fun filterTransactions(
     query: String,
     typeFilter: LedgerTypeFilter,
     dateFilter: LedgerDateFilter = LedgerDateFilter.All,
+    accountId: Long? = null,
     nowMillis: Long = System.currentTimeMillis(),
     zoneId: ZoneId = ZoneId.systemDefault(),
 ): List<TransactionListItem> {
@@ -36,6 +37,7 @@ fun filterTransactions(
             LedgerTypeFilter.Income -> transaction.type == TransactionType.Income
         }
         val matchesDate = dateRange == null || transaction.occurredAt in dateRange
+        val matchesAccount = accountId == null || transaction.accountId == accountId
         val matchesQuery = normalizedQuery.isBlank() ||
             listOf(
                 transaction.categoryName,
@@ -43,7 +45,7 @@ fun filterTransactions(
                 transaction.merchant.orEmpty(),
                 transaction.note.orEmpty(),
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
-        matchesType && matchesDate && matchesQuery
+        matchesType && matchesDate && matchesAccount && matchesQuery
     }
 }
 
