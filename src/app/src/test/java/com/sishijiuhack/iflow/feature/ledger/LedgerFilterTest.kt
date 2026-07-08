@@ -41,6 +41,19 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesCurrencyMarkedAmountQuery() {
+        val fullWidthCurrency = filterTransactions(sampleTransactions, "￥１８．００", LedgerTypeFilter.All)
+        val yuanSuffix = filterTransactions(sampleTransactions, "18.00元", LedgerTypeFilter.All)
+        val latinPrefix = filterTransactions(sampleTransactions, "RMB 18.00", LedgerTypeFilter.All)
+        val signedCurrency = filterTransactions(sampleTransactions, "-￥18.00", LedgerTypeFilter.All)
+
+        assertEquals(listOf(1L), fullWidthCurrency.map { it.id })
+        assertEquals(listOf(1L), yuanSuffix.map { it.id })
+        assertEquals(listOf(1L), latinPrefix.map { it.id })
+        assertEquals(listOf(1L), signedCurrency.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_matchesQueryBySignedIncomeAmount() {
         val result = filterTransactions(sampleTransactions, "+5000.00", LedgerTypeFilter.All)
 

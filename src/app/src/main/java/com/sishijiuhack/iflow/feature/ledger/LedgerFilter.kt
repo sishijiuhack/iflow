@@ -56,7 +56,7 @@ fun filterTransactions(
 }
 
 private fun String.normalizeLedgerSearchQuery(): String {
-    return trim().map { char ->
+    val normalized = trim().map { char ->
         when (char) {
             in '０'..'９' -> '0' + (char - '０')
             '．', '。' -> '.'
@@ -65,6 +65,11 @@ private fun String.normalizeLedgerSearchQuery(): String {
             else -> char
         }
     }.joinToString(separator = "")
+    val currencyStripped = normalized
+        .replace(Regex("人民币|rmb|cny", RegexOption.IGNORE_CASE), "")
+        .filterNot { it == '¥' || it == '￥' || it == '元' }
+        .trim()
+    return if (currencyStripped.any { it.isDigit() }) currencyStripped else normalized
 }
 
 private fun Long.toPlainAmountText(): String {
