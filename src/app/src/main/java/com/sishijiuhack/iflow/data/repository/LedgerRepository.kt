@@ -293,6 +293,8 @@ class LedgerRepository(
     }
 
     suspend fun softDeleteTransaction(id: Long) {
+        val transaction = transactionDao.getById(id) ?: return
+        if (transaction.status == TransactionStatus.Deleted) return
         transactionDao.updateStatus(id, TransactionStatus.Deleted, System.currentTimeMillis())
     }
 

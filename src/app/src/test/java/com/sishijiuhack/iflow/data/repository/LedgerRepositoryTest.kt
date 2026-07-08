@@ -93,6 +93,21 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun softDeleteTransaction_doesNotTouchAlreadyDeletedTransaction() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-delete-idempotent"))
+
+        assertTrue(insertedId != null)
+        repository.softDeleteTransaction(insertedId!!)
+        val deleted = database.transactionDao().getById(insertedId)
+
+        Thread.sleep(2)
+        repository.softDeleteTransaction(insertedId)
+
+        assertEquals(deleted?.updatedAt, database.transactionDao().getById(insertedId)?.updatedAt)
+        assertEquals(TransactionStatus.Deleted, database.transactionDao().getById(insertedId)?.status)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_ignoresDisabledRule() = runTest {
         repository.ensureDefaultData()
         database.notificationRuleDao().listAll()
