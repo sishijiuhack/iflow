@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
+import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import com.sishijiuhack.iflow.notification.PaymentNotificationParseResult
 import kotlinx.coroutines.test.runTest
@@ -41,6 +42,32 @@ class LedgerRepositoryTest {
 
         assertEquals(1, database.transactionDao().listActiveTransactions().size)
         assertTrue(insertedId != null)
+    }
+
+    @Test
+    fun pendingNotificationTransaction_canBeConfirmedAndSoftDeleted() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-lifecycle"))
+
+        assertTrue(insertedId != null)
+        assertEquals(
+            TransactionStatus.Pending,
+            database.transactionDao().getById(insertedId!!)?.status,
+        )
+
+        repository.confirmPendingTransaction(insertedId)
+
+        assertEquals(
+            TransactionStatus.Confirmed,
+            database.transactionDao().getById(insertedId)?.status,
+        )
+
+        repository.softDeleteTransaction(insertedId)
+
+        assertEquals(
+            TransactionStatus.Deleted,
+            database.transactionDao().getById(insertedId)?.status,
+        )
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
     }
 
     @Test
