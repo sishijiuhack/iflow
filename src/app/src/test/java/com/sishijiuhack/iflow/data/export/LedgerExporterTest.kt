@@ -112,6 +112,21 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toCsv_neutralizesFormulaLikeRawNotificationId() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(rawNotificationId = "=raw-id"),
+                ),
+            )
+        }
+
+        val csv = exporter.toCsv(snapshot)
+
+        assertTrue(csv.contains("'=raw-id"))
+    }
+
+    @Test
     fun toCsv_exportsConfirmedTransactionsOnly() {
         val snapshot = sampleSnapshot().let {
             it.copy(
