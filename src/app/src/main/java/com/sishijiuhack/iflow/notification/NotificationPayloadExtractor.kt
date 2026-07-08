@@ -19,6 +19,7 @@ object NotificationPayloadExtractor {
             extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
             extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
             extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString(),
+            extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString(),
         )
             .plus(
                 extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)

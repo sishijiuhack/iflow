@@ -87,10 +87,11 @@ class NotificationPayloadExtractorTest {
             putCharSequence(Notification.EXTRA_TEXT, "Paid 16.20")
             putCharSequence(Notification.EXTRA_SUB_TEXT, "Bank card 1234")
             putCharSequence(Notification.EXTRA_INFO_TEXT, "Merchant Metro")
+            putCharSequence(Notification.EXTRA_SUMMARY_TEXT, "Payment summary")
         }
 
         assertEquals(
-            "Paid 16.20 Bank card 1234 Merchant Metro",
+            "Paid 16.20 Bank card 1234 Merchant Metro Payment summary",
             NotificationPayloadExtractor.textFrom(extras),
         )
     }
