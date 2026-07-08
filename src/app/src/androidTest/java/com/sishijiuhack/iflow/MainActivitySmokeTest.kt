@@ -36,6 +36,15 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun homeQuickEntryCancelReturnsHome() {
+        composeRule.onNodeWithText("记一笔").performClick()
+        composeRule.onNodeWithText("取消").performClick()
+
+        composeRule.onNodeWithText("本月概览").assertIsDisplayed()
+        composeRule.onNodeWithText("待确认 0 笔").assertIsDisplayed()
+    }
+
+    @Test
     fun homePendingEntryOpensPendingList() {
         composeRule.onNodeWithText("待确认 0 笔").performClick()
 
