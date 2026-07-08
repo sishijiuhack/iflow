@@ -341,7 +341,8 @@ class LedgerRepository(
         return notificationRuleDao.listEnabled().any { rule ->
             val packageMatches = parsed.packageName == rule.packageName ||
                 parsed.packageName.contains(rule.packageName, ignoreCase = true) ||
-                (rule.packageName == "bank" && parsed.sourceApp.contains("银行"))
+                (rule.packageName == "bank" && parsed.sourceApp.contains("银行")) ||
+                (rule.packageName == "com.eg.android.AlipayGphone" && parsed.sourceApp.contains("支付宝"))
             val keywordMatches = rule.keywords.isEmpty() ||
                 rule.keywords.any { keyword -> text.contains(keyword, ignoreCase = true) }
             packageMatches && keywordMatches

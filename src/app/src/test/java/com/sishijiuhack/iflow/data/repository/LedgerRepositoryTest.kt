@@ -196,6 +196,24 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesAlipayRuleBySourceName() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-alipay-source-rule").copy(
+                sourceApp = "支付宝",
+                packageName = "com.Alipay.mobile",
+                rawTitle = "支付宝",
+                rawText = "支付12.00元",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(AccountType.Alipay, account?.type)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_matchesUnionPayAccountByPackage() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(
             sampleParsed("fingerprint-unionpay-account").copy(
