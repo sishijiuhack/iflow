@@ -6,6 +6,7 @@ import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
 import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.domain.model.AccountType
+import com.sishijiuhack.iflow.domain.model.TransactionSource
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import com.sishijiuhack.iflow.notification.PaymentNotificationParseResult
@@ -671,6 +672,40 @@ class LedgerRepositoryTest {
         assertEquals(original?.createdAt, updated?.createdAt)
         assertEquals(original?.source, updated?.source)
         assertTrue((updated?.updatedAt ?: 0L) >= (original?.updatedAt ?: 0L))
+    }
+
+    @Test
+    fun saveManualTransaction_updatesPendingNotificationWithoutLosingNotificationMetadata() = runTest {
+        val fingerprint = "fingerprint-edit-pending-notification"
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed(fingerprint))
+
+        assertTrue(insertedId != null)
+        val original = database.transactionDao().getById(insertedId!!)
+
+        Thread.sleep(2)
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 3400L,
+                categoryId = original!!.categoryId,
+                accountId = original.accountId,
+                occurredAt = 2_000L,
+            ).copy(
+                id = insertedId,
+                merchant = "编辑后的商户",
+                note = "确认前补充",
+                status = TransactionStatus.Pending,
+            ),
+        )
+
+        val updated = database.transactionDao().getById(insertedId)
+        assertEquals(TransactionSource.Notification, updated?.source)
+        assertEquals(fingerprint, updated?.rawNotificationId)
+        assertEquals(TransactionStatus.Pending, updated?.status)
+        assertEquals(3400L, updated?.amountCents)
+        assertEquals("编辑后的商户", updated?.merchant)
+        assertEquals("确认前补充", updated?.note)
+        assertEquals(original.createdAt, updated?.createdAt)
+        assertTrue((updated?.updatedAt ?: 0L) >= original.updatedAt)
     }
 
     @Test
