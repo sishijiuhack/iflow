@@ -68,7 +68,7 @@ private fun String.normalizeLedgerSearchQuery(): String {
     }.joinToString(separator = "")
     val currencyStripped = normalized
         .replace(Regex("人民币|rmb|cny", RegexOption.IGNORE_CASE), "")
-        .filterNot { it == '¥' || it == '￥' || it == '元' || it == ',' }
+        .filterNot { it == '¥' || it == '￥' || it == '元' || it == '整' || it == ',' }
         .trim()
     return if (currencyStripped.any { it.isDigit() }) currencyStripped else normalized
 }

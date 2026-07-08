@@ -70,6 +70,13 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesExactYuanAmountQuery() {
+        val result = filterTransactions(sampleTransactions, "5000元整", LedgerTypeFilter.All)
+
+        assertEquals(listOf(2L), result.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_filtersByType() {
         val result = filterTransactions(sampleTransactions, "", LedgerTypeFilter.Income)
 
