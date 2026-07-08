@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +34,7 @@ fun SettingsRoute(
     val lifecycleOwner = LocalLifecycleOwner.current
     val permissionEnabled = remember { mutableStateOf(isNotificationListenerEnabled(context)) }
     val exportEvent by viewModel.exportEvent.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -78,6 +80,26 @@ fun SettingsRoute(
         }
         Text("自动记账依赖通知使用权。未开启时，手动记账仍可完整使用。")
         Text("HyperOS 入口可能随版本变化，请以系统设置页面为准。")
+        Text("自动记账", style = MaterialTheme.typography.titleMedium)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("捕获支付通知")
+            Switch(
+                checked = settings?.autoCaptureEnabled ?: true,
+                onCheckedChange = viewModel::setAutoCaptureEnabled,
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("自动确认低风险记录")
+            Switch(
+                checked = settings?.autoConfirmEnabled ?: false,
+                onCheckedChange = viewModel::setAutoConfirmEnabled,
+            )
+        }
+        Text("默认策略是先进入待确认；开启自动确认后，解析成功的通知会直接进入正式流水。")
         Text("本地导出", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = viewModel::exportJson) {

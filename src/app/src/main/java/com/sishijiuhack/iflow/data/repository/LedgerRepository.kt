@@ -3,6 +3,7 @@ package com.sishijiuhack.iflow.data.repository
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
+import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.local.entity.TransactionEntity
 import com.sishijiuhack.iflow.domain.model.TransactionSource
@@ -22,6 +23,7 @@ class LedgerRepository(
     private val transactionDao = database.transactionDao()
     private val categoryDao = database.categoryDao()
     private val accountDao = database.accountDao()
+    private val appSettingDao = database.appSettingDao()
 
     suspend fun ensureDefaultData() {
         seeder.seedIfNeeded()
@@ -30,6 +32,8 @@ class LedgerRepository(
     fun observeCategories(): Flow<List<CategoryEntity>> = categoryDao.observeAll()
 
     fun observeAccounts(): Flow<List<AccountEntity>> = accountDao.observeAll()
+
+    fun observeSettings(): Flow<AppSettingEntity?> = appSettingDao.observe()
 
     fun observeTransactions(): Flow<List<TransactionListItem>> {
         return combine(
@@ -165,7 +169,7 @@ class LedgerRepository(
             transactions = transactionDao.listActiveTransactions(),
             categories = categoryDao.observeAllSnapshot(),
             accounts = accountDao.listAll(),
-            settings = database.appSettingDao().get(),
+            settings = appSettingDao.get(),
         )
     }
 
@@ -199,10 +203,17 @@ class LedgerRepository(
 
     suspend fun savePendingNotificationTransaction(parsed: PaymentNotificationParseResult): Long? {
         ensureDefaultData()
+        val settings = appSettingDao.get()
+        if (settings?.autoCaptureEnabled == false) return null
         if (transactionDao.countByRawNotificationId(parsed.fingerprint) > 0) return null
         val categories = categoryDao.listByType(parsed.type)
         val accounts = accountDao.listAll()
         val now = System.currentTimeMillis()
+        val status = if (settings?.autoConfirmEnabled == true) {
+            TransactionStatus.Confirmed
+        } else {
+            TransactionStatus.Pending
+        }
         val categoryId = categories.firstOrNull()?.id ?: return null
         val accountId = accounts.firstOrNull { parsed.sourceApp.contains(it.name) }?.id
             ?: accounts.firstOrNull()?.id
@@ -218,7 +229,7 @@ class LedgerRepository(
                 note = "${parsed.sourceApp}通知",
                 occurredAt = parsed.postedAt,
                 source = TransactionSource.Notification,
-                status = TransactionStatus.Pending,
+                status = status,
                 rawNotificationId = parsed.fingerprint,
                 createdAt = now,
                 updatedAt = now,
@@ -232,6 +243,28 @@ class LedgerRepository(
 
     suspend fun confirmPendingTransaction(id: Long) {
         transactionDao.updateStatus(id, TransactionStatus.Confirmed, System.currentTimeMillis())
+    }
+
+    suspend fun setAutoCaptureEnabled(enabled: Boolean) {
+        ensureDefaultData()
+        val current = appSettingDao.get() ?: return
+        appSettingDao.update(
+            current.copy(
+                autoCaptureEnabled = enabled,
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    suspend fun setAutoConfirmEnabled(enabled: Boolean) {
+        ensureDefaultData()
+        val current = appSettingDao.get() ?: return
+        appSettingDao.update(
+            current.copy(
+                autoConfirmEnabled = enabled,
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
     }
 
     private fun TransactionEntity.toListItem(
