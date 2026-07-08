@@ -117,6 +117,18 @@ class IFlowDatabaseTest {
     }
 
     @Test
+    fun transactionDao_listsActiveTransactionsInStableLedgerOrder() = runTest {
+        DefaultDataSeeder(database).seedIfNeeded(nowMillis = 1000L)
+        val olderId = database.transactionDao().insert(sampleTransaction(occurredAt = 1_000L))
+        val sameTimeOlderId = database.transactionDao().insert(sampleTransaction(occurredAt = 2_000L))
+        val sameTimeNewerId = database.transactionDao().insert(sampleTransaction(occurredAt = 2_000L))
+
+        val activeIds = database.transactionDao().listActiveTransactions().map { it.id }
+
+        assertEquals(listOf(sameTimeNewerId, sameTimeOlderId, olderId), activeIds)
+    }
+
+    @Test
     fun notificationRuleDao_preservesKeywordListWithConverters() = runTest {
         val id = database.notificationRuleDao().upsert(
             NotificationRuleEntity(
@@ -132,5 +144,22 @@ class IFlowDatabaseTest {
 
         val rule = database.notificationRuleDao().getById(id)
         assertEquals(listOf("微信支付", "付款"), rule?.keywords)
+    }
+
+    private fun sampleTransaction(occurredAt: Long): TransactionEntity {
+        return TransactionEntity(
+            type = TransactionType.Expense,
+            amountCents = 1299L,
+            categoryId = 1L,
+            accountId = DefaultLedgerData.DefaultAccountId,
+            merchant = "便利店",
+            note = "早餐",
+            occurredAt = occurredAt,
+            source = TransactionSource.Manual,
+            status = TransactionStatus.Confirmed,
+            rawNotificationId = null,
+            createdAt = occurredAt,
+            updatedAt = occurredAt,
+        )
     }
 }
