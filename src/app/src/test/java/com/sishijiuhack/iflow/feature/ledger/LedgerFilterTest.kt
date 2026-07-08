@@ -77,6 +77,13 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesKuaiAmountQuery() {
+        val result = filterTransactions(sampleTransactions, "18块", LedgerTypeFilter.All)
+
+        assertEquals(listOf(1L), result.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_filtersByType() {
         val result = filterTransactions(sampleTransactions, "", LedgerTypeFilter.Income)
 
