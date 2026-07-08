@@ -178,6 +178,24 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesBankRuleBySourceName() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-bank-source-rule").copy(
+                sourceApp = "银行",
+                packageName = "com.cmbchina.ccd",
+                rawTitle = "交易提醒",
+                rawText = "支出人民币12.00元",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(AccountType.Bank, account?.type)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_matchesUnionPayAccountByPackage() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(
             sampleParsed("fingerprint-unionpay-account").copy(
