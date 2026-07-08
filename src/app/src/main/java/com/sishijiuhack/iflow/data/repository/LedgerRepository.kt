@@ -42,7 +42,7 @@ class LedgerRepository(
 
     fun observeTransactions(): Flow<List<TransactionListItem>> {
         return combine(
-            transactionDao.observeActiveTransactions(),
+            transactionDao.observeByStatus(TransactionStatus.Confirmed),
             categoryDao.observeAll(),
             accountDao.observeAll(),
         ) { transactions, categories, accounts ->
@@ -59,7 +59,7 @@ class LedgerRepository(
 
     fun observeRecentTransactions(limit: Int): Flow<List<TransactionListItem>> {
         return combine(
-            transactionDao.observeRecentActiveTransactions(limit),
+            transactionDao.observeRecentByStatus(TransactionStatus.Confirmed, limit),
             categoryDao.observeAll(),
             accountDao.observeAll(),
         ) { transactions, categories, accounts ->

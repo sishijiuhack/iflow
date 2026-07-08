@@ -33,6 +33,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE status = :status ORDER BY occurredAt DESC, id DESC")
     fun observeByStatus(status: TransactionStatus): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transactions WHERE status = :status ORDER BY occurredAt DESC, id DESC LIMIT :limit")
+    fun observeRecentByStatus(status: TransactionStatus, limit: Int): Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM transactions WHERE status = :status ORDER BY occurredAt DESC, id DESC")
     suspend fun listByStatus(status: TransactionStatus): List<TransactionEntity>
 

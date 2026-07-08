@@ -88,6 +88,20 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeTransactions_hidesPendingUntilConfirmed() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-ledger-pending"))
+
+        assertTrue(insertedId != null)
+        assertTrue(repository.observeTransactions().first().isEmpty())
+        assertTrue(repository.observeRecentTransactions(limit = 5).first().isEmpty())
+
+        repository.confirmPendingTransaction(insertedId!!)
+
+        assertEquals(listOf(insertedId), repository.observeTransactions().first().map { it.id })
+        assertEquals(listOf(insertedId), repository.observeRecentTransactions(limit = 5).first().map { it.id })
+    }
+
+    @Test
     fun confirmPendingTransaction_doesNotRestoreDeletedTransaction() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-confirm-deleted"))
 
