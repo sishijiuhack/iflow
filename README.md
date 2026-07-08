@@ -70,3 +70,18 @@ Run instrumentation tests when a device or emulator is connected:
 cd src
 .\gradlew.bat connectedDebugAndroidTest
 ```
+
+## Manual Validation Checklist
+
+Use this checklist on the target Android device before treating a build as a daily-use release:
+
+- Install the debug APK and launch the app.
+- Add a manual expense and a manual income transaction.
+- Edit one transaction, then delete one transaction and confirm it disappears from the active ledger.
+- Open the ledger tab and verify search, date, account, and category filters.
+- Open notification access settings from the app settings screen and enable iFlow.
+- Trigger or simulate a payment notification from WeChat, Alipay, UnionPay, or a bank app.
+- Confirm the parsed transaction appears in the pending queue.
+- Confirm one pending transaction and verify it appears in the main ledger.
+- Export JSON and CSV files through the Android document picker.
+- Reopen the app and verify local data is still present.
