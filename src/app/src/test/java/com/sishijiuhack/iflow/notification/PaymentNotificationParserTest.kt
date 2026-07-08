@@ -430,6 +430,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_amountWithLowercaseCurrencyPrefix_extractsAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "消费rmb16.20，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+    }
+
+    @Test
     fun parse_irrelevantNotification_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
