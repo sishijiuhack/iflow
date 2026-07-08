@@ -243,6 +243,20 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun exportSnapshot_updatesLastExportedAt() = runTest {
+        repository.ensureDefaultData()
+
+        val snapshot = repository.exportSnapshot()
+        val savedSettings = database.appSettingDao().get()
+
+        assertTrue(snapshot.exportedAt > 0L)
+        assertEquals(snapshot.exportedAt, snapshot.settings?.lastExportedAt)
+        assertEquals(snapshot.exportedAt, snapshot.settings?.updatedAt)
+        assertEquals(snapshot.exportedAt, savedSettings?.lastExportedAt)
+        assertEquals(snapshot.exportedAt, savedSettings?.updatedAt)
+    }
+
+    @Test
     fun observeStats_includesDailyExpensesForLastSevenDays() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val today = LocalDate.now(zone)
