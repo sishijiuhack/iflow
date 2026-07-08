@@ -6,6 +6,7 @@ class LedgerExporter {
     fun toJson(snapshot: LedgerExportSnapshot): String {
         return buildString {
             appendLine("{")
+            appendLine("  \"schemaVersion\": 1,")
             appendLine("  \"exportedAt\": ${snapshot.exportedAt},")
             appendLine("  \"categories\": [")
             snapshot.categories.forEachIndexed { index, category ->

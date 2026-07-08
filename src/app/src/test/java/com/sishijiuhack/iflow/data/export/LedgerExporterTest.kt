@@ -20,6 +20,7 @@ class LedgerExporterTest {
     fun toJson_containsCoreFields() {
         val json = exporter.toJson(sampleSnapshot())
 
+        assertTrue(json.contains("\"schemaVersion\": 1"))
         assertTrue(json.contains("\"transactions\""))
         assertTrue(json.contains("\"amountCents\": 1200"))
         assertTrue(json.contains("\"categories\""))
