@@ -53,6 +53,7 @@ class PaymentNotificationParser {
             packageName == "com.eg.android.AlipayGphone" -> "支付宝"
             packageName.contains("unionpay") -> "银联"
             packageName.contains("bank", ignoreCase = true) -> "银行"
+            bankPackageHints.any { packageName.contains(it, ignoreCase = true) } -> "银行"
             packageName.contains("alipay", ignoreCase = true) -> "支付宝"
             else -> packageName
         }
@@ -76,7 +77,8 @@ class PaymentNotificationParser {
             "com.eg.android.AlipayGphone",
             "com.unionpay",
         )
-        val knownPackageHints = listOf("bank", "unionpay", "alipay")
+        val bankPackageHints = listOf("icbc", "cmb", "ccb", "boc", "abchina", "psbc", "bankcomm")
+        val knownPackageHints = listOf("bank", "unionpay", "alipay") + bankPackageHints
         val paymentKeywords = listOf("支付", "付款", "收款", "退款", "消费", "转账", "交易", "支出", "收入", "到账")
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入")
         val expenseKeywords = listOf("付款", "支出", "消费", "支付", "转出")
