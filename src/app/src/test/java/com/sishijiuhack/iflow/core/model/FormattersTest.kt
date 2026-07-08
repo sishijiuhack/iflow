@@ -26,6 +26,14 @@ class FormattersTest {
     }
 
     @Test
+    fun editableTime_acceptsFullWidthUserInput() {
+        val millis = parseEditableTime("２０２６－０７－０８　２３：１５", zone)
+
+        assertNotNull(millis)
+        assertEquals("2026-07-08 23:15", millis!!.formatEditableTime(zone))
+    }
+
+    @Test
     fun editableTime_rejectsInvalidInput() {
         assertNull(parseEditableTime("2026/07/08 23:15", zone))
         assertNull(parseEditableTime("not time", zone))

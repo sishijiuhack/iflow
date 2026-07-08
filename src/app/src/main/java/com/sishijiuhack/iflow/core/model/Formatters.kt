@@ -23,11 +23,23 @@ fun Long.formatExportFileTime(zoneId: ZoneId = ZoneId.systemDefault()): String {
 
 fun parseEditableTime(input: String, zoneId: ZoneId = ZoneId.systemDefault()): Long? {
     return runCatching {
-        java.time.LocalDateTime.parse(input.trim(), editableTimeFormatter)
+        java.time.LocalDateTime.parse(input.normalizeEditableTimeInput(), editableTimeFormatter)
             .atZone(zoneId)
             .toInstant()
             .toEpochMilli()
     }.getOrNull()
+}
+
+private fun String.normalizeEditableTimeInput(): String {
+    return trim().map { char ->
+        when (char) {
+            in '０'..'９' -> '0' + (char - '０')
+            '－', '—', 'ー' -> '-'
+            '：' -> ':'
+            '　' -> ' '
+            else -> char
+        }
+    }.joinToString(separator = "")
 }
 
 fun Long.formatSignedMoney(typeName: String): String {
