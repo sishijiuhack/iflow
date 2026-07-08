@@ -113,6 +113,20 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_knownPackageAmountWithoutPaymentKeyword_returnsNull() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.tencent.mm",
+                title = "Security notice",
+                text = "Login risk score 12.00鍏?",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNull(result)
+    }
+
+    @Test
     fun fingerprint_sameNotificationInSameMinute_isStable() {
         val first = NotificationFingerprint.create("pkg", "title", "text", 120_000L, 100L)
         val second = NotificationFingerprint.create("pkg", "title", "text", 150_000L, 100L)
