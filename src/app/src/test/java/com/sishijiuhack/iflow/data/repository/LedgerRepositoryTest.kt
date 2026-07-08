@@ -145,6 +145,24 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesUnionPayAccountByPackage() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-unionpay-account").copy(
+                sourceApp = "银联",
+                packageName = "com.unionpay.wallet",
+                rawTitle = "银联交易提醒",
+                rawText = "消费45.60元，商户：超市",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(AccountType.Bank, account?.type)
+    }
+
+    @Test
     fun setNotificationRuleEnabled_updatesRuleState() = runTest {
         repository.ensureDefaultData()
         val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }

@@ -7,6 +7,7 @@ import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.data.local.entity.TransactionEntity
+import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionSource
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
@@ -265,9 +266,7 @@ class LedgerRepository(
             TransactionStatus.Pending
         }
         val categoryId = categories.firstOrNull()?.id ?: return null
-        val accountId = accounts.firstOrNull {
-            parsed.sourceApp.contains(it.name) || it.name.contains(parsed.sourceApp)
-        }?.id
+        val accountId = selectNotificationAccountId(parsed, accounts)
             ?: accounts.firstOrNull()?.id
             ?: return null
 
@@ -345,6 +344,28 @@ class LedgerRepository(
             val keywordMatches = rule.keywords.isEmpty() ||
                 rule.keywords.any { keyword -> text.contains(keyword, ignoreCase = true) }
             packageMatches && keywordMatches
+        }
+    }
+
+    private fun selectNotificationAccountId(
+        parsed: PaymentNotificationParseResult,
+        accounts: List<AccountEntity>,
+    ): Long? {
+        return accounts.firstOrNull {
+            parsed.sourceApp.contains(it.name) || it.name.contains(parsed.sourceApp)
+        }?.id ?: preferredAccountType(parsed)?.let { accountType ->
+            accounts.firstOrNull { it.type == accountType }?.id
+        }
+    }
+
+    private fun preferredAccountType(parsed: PaymentNotificationParseResult): AccountType? {
+        val packageName = parsed.packageName
+        return when {
+            packageName == "com.tencent.mm" -> AccountType.Wechat
+            packageName.contains("alipay", ignoreCase = true) -> AccountType.Alipay
+            packageName.contains("unionpay", ignoreCase = true) -> AccountType.Bank
+            packageName.contains("bank", ignoreCase = true) -> AccountType.Bank
+            else -> null
         }
     }
 
