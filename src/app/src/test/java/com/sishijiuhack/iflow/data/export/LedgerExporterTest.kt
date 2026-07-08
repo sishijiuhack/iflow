@@ -175,6 +175,23 @@ class LedgerExporterTest {
         assertTrue(json.contains("hidden\\u001fcontrol"))
     }
 
+    @Test
+    fun toJson_escapesNotificationRuleKeywords() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                notificationRules = listOf(
+                    it.notificationRules.first().copy(
+                        keywords = listOf("付款\"确认", "收款\\到账"),
+                    ),
+                ),
+            )
+        }
+
+        val json = exporter.toJson(snapshot)
+
+        assertTrue(json.contains("\"keywords\": [\"付款\\\"确认\", \"收款\\\\到账\"]"))
+    }
+
     private fun sampleSnapshotWithSpecialText(): LedgerExportSnapshot {
         val snapshot = sampleSnapshot()
         val transaction = snapshot.transactions.first().copy(
