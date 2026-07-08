@@ -41,7 +41,8 @@ class PaymentNotificationParser {
     }
 
     private fun looksLikePayment(packageName: String, text: String): Boolean {
-        val knownPackage = packageName in knownPackages || knownPackageHints.any { packageName.contains(it) }
+        val knownPackage = packageName in knownPackages ||
+            knownPackageHints.any { packageName.contains(it, ignoreCase = true) }
         val hasKeyword = paymentKeywords.any { text.contains(it) }
         return knownPackage && hasKeyword
     }
