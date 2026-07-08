@@ -549,6 +549,40 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_leadingServiceFee_usesActualTransactionAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "手续费人民币1.00元，支出人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+    }
+
+    @Test
+    fun parse_leadingDiscount_usesActualPaymentAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.tencent.mm",
+                title = "微信支付",
+                text = "优惠5.00元，向便利店付款12.30元",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1230L, result?.amountCents)
+        assertEquals("便利店", result?.merchant)
+    }
+
+    @Test
     fun parse_irrelevantNotification_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(

@@ -67,7 +67,7 @@ class PaymentNotificationParser {
 
     private fun extractAmountCents(text: String): Long? {
         return amountRegex.findAll(text).firstNotNullOfOrNull { match ->
-            if (match.isBalanceAmount(text)) return@firstNotNullOfOrNull null
+            if (match.isAuxiliaryAmount(text)) return@firstNotNullOfOrNull null
             match.groups
                 .let { groups -> groups[1]?.value ?: groups[2]?.value }
                 ?.replace(",", "")
@@ -76,10 +76,10 @@ class PaymentNotificationParser {
         }
     }
 
-    private fun MatchResult.isBalanceAmount(text: String): Boolean {
+    private fun MatchResult.isAuxiliaryAmount(text: String): Boolean {
         val contextStart = (range.first - 8).coerceAtLeast(0)
         val leadingContext = text.substring(contextStart, range.first)
-        return balanceLabels.any { leadingContext.contains(it) }
+        return auxiliaryAmountLabels.any { leadingContext.contains(it) }
     }
 
     private companion object {
@@ -124,7 +124,7 @@ class PaymentNotificationParser {
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入", "入账", "存入", "工资", "贷记")
         val strongExpenseKeywords = listOf("付款", "扣款", "支出", "消费", "转出", "借记")
         val expenseKeywords = listOf("付款", "扣款", "支出", "消费", "支付", "转出", "借记")
-        val balanceLabels = listOf("余额", "账户余额", "可用余额")
+        val auxiliaryAmountLabels = listOf("余额", "账户余额", "可用余额", "手续费", "服务费", "优惠", "立减", "折扣")
     }
 }
 
