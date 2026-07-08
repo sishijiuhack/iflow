@@ -266,7 +266,7 @@ class LedgerRepository(
             TransactionStatus.Pending
         }
         val categoryId = selectNotificationCategoryId(parsed, categories) ?: return null
-        val accountId = selectNotificationAccountId(parsed, accounts)
+        val accountId = selectNotificationAccountId(parsed, accounts, settings?.defaultAccountId)
             ?: accounts.firstOrNull()?.id
             ?: return null
 
@@ -350,11 +350,14 @@ class LedgerRepository(
     private fun selectNotificationAccountId(
         parsed: PaymentNotificationParseResult,
         accounts: List<AccountEntity>,
+        defaultAccountId: Long?,
     ): Long? {
         return accounts.firstOrNull {
             parsed.sourceApp.contains(it.name) || it.name.contains(parsed.sourceApp)
         }?.id ?: preferredAccountType(parsed)?.let { accountType ->
             accounts.firstOrNull { it.type == accountType }?.id
+        } ?: defaultAccountId?.let { id ->
+            accounts.firstOrNull { it.id == id }?.id
         }
     }
 

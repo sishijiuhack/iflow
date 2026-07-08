@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
+import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
@@ -124,6 +125,38 @@ class LedgerRepositoryTest {
             TransactionStatus.Confirmed,
             database.transactionDao().getById(insertedId!!)?.status,
         )
+    }
+
+    @Test
+    fun savePendingNotificationTransaction_fallsBackToDefaultAccount() = runTest {
+        repository.ensureDefaultData()
+        val defaultAccount = database.accountDao().listAll().first { it.type == AccountType.Alipay }
+        repository.setDefaultAccount(defaultAccount.id)
+        database.notificationRuleDao().upsert(
+            NotificationRuleEntity(
+                packageName = "custom.pay",
+                appName = "CustomPay",
+                enabled = true,
+                keywords = listOf("消费"),
+                amountPattern = "",
+                directionPattern = "",
+            ),
+        )
+
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-default-account").copy(
+                sourceApp = "CustomPay",
+                packageName = "custom.pay",
+                rawTitle = "CustomPay",
+                rawText = "消费12.00元",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(AccountType.Alipay, account?.type)
     }
 
     @Test
