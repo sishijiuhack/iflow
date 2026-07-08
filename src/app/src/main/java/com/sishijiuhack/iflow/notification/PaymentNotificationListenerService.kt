@@ -1,6 +1,5 @@
 package com.sishijiuhack.iflow.notification
 
-import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.sishijiuhack.iflow.core.android.appContainer
@@ -16,11 +15,8 @@ class PaymentNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
-        val text = listOf(
-            extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty(),
-            extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString().orEmpty(),
-        ).filter { it.isNotBlank() }.joinToString(" ")
+        val title = NotificationPayloadExtractor.titleFrom(extras)
+        val text = NotificationPayloadExtractor.textFrom(extras)
 
         val parsed = parser.parse(
             PaymentNotificationInput(
