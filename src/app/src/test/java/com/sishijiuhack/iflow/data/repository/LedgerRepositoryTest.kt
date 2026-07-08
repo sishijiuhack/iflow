@@ -377,6 +377,27 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun saveManualTransaction_rejectsMissingUpdateTarget() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = 100L,
+                    categoryId = categoryId,
+                    accountId = accountId,
+                    occurredAt = 1_000L,
+                ).copy(id = 404L),
+            )
+            fail("Expected IllegalArgumentException for missing update target.")
+        } catch (_: IllegalArgumentException) {
+        }
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
     fun observeStats_includesDailyExpensesForLastSevenDays() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val today = LocalDate.now(zone)

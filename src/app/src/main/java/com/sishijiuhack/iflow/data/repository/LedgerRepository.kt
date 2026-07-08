@@ -228,6 +228,7 @@ class LedgerRepository(
         require(input.amountCents > 0L) { "Transaction amount must be positive." }
         val now = System.currentTimeMillis()
         val existing = input.id?.let { transactionDao.getById(it) }
+        require(input.id == null || existing != null) { "Transaction to update was not found." }
         val entity = TransactionEntity(
             id = input.id ?: 0L,
             type = input.type,
