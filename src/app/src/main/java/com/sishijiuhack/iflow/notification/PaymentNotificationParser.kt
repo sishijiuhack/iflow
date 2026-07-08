@@ -80,7 +80,21 @@ class PaymentNotificationParser {
             "com.eg.android.AlipayGphone",
             "com.unionpay",
         )
-        val bankPackageHints = listOf("icbc", "cmb", "ccb", "boc", "abchina", "psbc", "bankcomm")
+        val bankPackageHints = listOf(
+            "icbc",
+            "cmb",
+            "ccb",
+            "boc",
+            "abchina",
+            "psbc",
+            "bankcomm",
+            "spdb",
+            "cib",
+            "cebbank",
+            "citic",
+            "hxb",
+            "pingan",
+        )
         val knownPackageHints = listOf("bank", "unionpay", "alipay") + bankPackageHints
         val paymentKeywords = listOf("支付", "付款", "收款", "退款", "消费", "转账", "交易", "支出", "收入", "到账")
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入")
