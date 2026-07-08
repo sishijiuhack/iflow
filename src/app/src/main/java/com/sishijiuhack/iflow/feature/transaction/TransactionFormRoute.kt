@@ -124,17 +124,25 @@ fun TransactionFormRoute(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        OutlinedTextField(
-            value = uiState.form.occurredAtInput,
-            onValueChange = viewModel::setOccurredAtInput,
-            label = { Text("时间") },
-            isError = uiState.timeError != null,
-            supportingText = {
-                Text(uiState.timeError ?: "格式：yyyy-MM-dd HH:mm")
-            },
-            singleLine = true,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth(),
-        )
+        ) {
+            OutlinedTextField(
+                value = uiState.form.occurredAtInput,
+                onValueChange = viewModel::setOccurredAtInput,
+                label = { Text("时间") },
+                isError = uiState.timeError != null,
+                supportingText = {
+                    Text(uiState.timeError ?: "格式：yyyy-MM-dd HH:mm")
+                },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = viewModel::setOccurredAtNow) {
+                Text("现在")
+            }
+        }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),

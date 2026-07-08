@@ -127,6 +127,16 @@ class TransactionFormViewModel(
         formState.update { it.copy(occurredAtInput = value) }
     }
 
+    fun setOccurredAtNow() {
+        val now = System.currentTimeMillis()
+        formState.update {
+            it.copy(
+                occurredAt = now,
+                occurredAtInput = now.formatEditableTime(),
+            )
+        }
+    }
+
     fun save() {
         val form = formState.value
         val amountCents = MoneyParser.parseCents(form.amountInput) ?: return

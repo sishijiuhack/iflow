@@ -30,6 +30,7 @@ class MainActivitySmokeTest {
         composeRule.onNodeWithText("分类").assertIsDisplayed()
         composeRule.onNodeWithText("账户").assertIsDisplayed()
         composeRule.onNodeWithText("时间").assertIsDisplayed()
+        composeRule.onNodeWithText("现在").assertIsDisplayed()
         composeRule.onNodeWithText("保存").assertIsDisplayed()
     }
 
