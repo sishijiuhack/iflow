@@ -99,6 +99,29 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_respectsAutoCaptureSetting() = runTest {
+        repository.setAutoCaptureEnabled(false)
+
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-auto-capture"))
+
+        assertNull(insertedId)
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
+    fun savePendingNotificationTransaction_respectsAutoConfirmSetting() = runTest {
+        repository.setAutoConfirmEnabled(true)
+
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-auto-confirm"))
+
+        assertTrue(insertedId != null)
+        assertEquals(
+            TransactionStatus.Confirmed,
+            database.transactionDao().getById(insertedId!!)?.status,
+        )
+    }
+
+    @Test
     fun setNotificationRuleEnabled_updatesRuleState() = runTest {
         repository.ensureDefaultData()
         val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }
