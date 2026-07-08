@@ -668,6 +668,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_merchantLabelWithSpaces_keepsMerchantName() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "支出人民币42.00元 商户：星巴克 深圳北站店 余额人民币1,000.00元",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(4200L, result?.amountCents)
+        assertEquals("星巴克 深圳北站店", result?.merchant)
+    }
+
+    @Test
     fun parse_leadingServiceFee_usesActualTransactionAmount() {
         val result = parser.parse(
             PaymentNotificationInput(

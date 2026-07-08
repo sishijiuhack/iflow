@@ -90,9 +90,14 @@ class PaymentNotificationParser {
         )
         val merchantRegexes = listOf(
             Regex("""(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)"""),
-            Regex("""(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款账户|收款人|收款方|对方|付款方|付款账户|付款户名|付款人)[:：]\s*([^，,。\s]+)"""),
+            Regex("""(?:$merchantLabelPattern)[:：]\s*(.+?)(?=$merchantBoundaryPattern|$)""", RegexOption.IGNORE_CASE),
         )
-        val merchantLabelRegex = Regex("""(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款账户|收款人|收款方|对方|付款方|付款账户|付款户名|付款人)[:：]\s*[^，,。\s]+""")
+        val merchantLabelRegex = Regex(
+            """(?:$merchantLabelPattern)[:：]\s*.+?(?=$merchantBoundaryPattern|$)""",
+            RegexOption.IGNORE_CASE,
+        )
+        const val merchantLabelPattern = """商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款账户|收款人|收款方|对方|付款方|付款账户|付款户名|付款人"""
+        const val merchantBoundaryPattern = """(?:[，,。；;]|\s+(?:余额|账户余额|可用余额|尾号|卡号|交易时间|时间|金额|人民币|RMB|CNY|¥|￥))"""
         val knownPackages = setOf(
             "com.tencent.mm",
             "com.eg.android.AlipayGphone",
