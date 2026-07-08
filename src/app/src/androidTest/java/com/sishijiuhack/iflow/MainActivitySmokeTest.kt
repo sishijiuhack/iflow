@@ -46,6 +46,15 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun statsTabShowsSummaryAndBars() {
+        composeRule.onNodeWithText("统计").performClick()
+
+        composeRule.onNodeWithText("今日支出").assertIsDisplayed()
+        composeRule.onNodeWithText("本月收支对比").assertIsDisplayed()
+        composeRule.onNodeWithText("分类支出排行").assertIsDisplayed()
+    }
+
+    @Test
     fun settingsTabShowsExportActions() {
         composeRule.onNodeWithText("设置").performClick()
 
