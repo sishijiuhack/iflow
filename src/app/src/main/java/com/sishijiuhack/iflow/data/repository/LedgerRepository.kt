@@ -295,6 +295,8 @@ class LedgerRepository(
     }
 
     suspend fun confirmPendingTransaction(id: Long) {
+        val transaction = transactionDao.getById(id) ?: return
+        if (transaction.status != TransactionStatus.Pending) return
         transactionDao.updateStatus(id, TransactionStatus.Confirmed, System.currentTimeMillis())
     }
 

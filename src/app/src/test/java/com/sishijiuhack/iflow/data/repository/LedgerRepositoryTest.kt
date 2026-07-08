@@ -78,6 +78,21 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun confirmPendingTransaction_doesNotRestoreDeletedTransaction() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-confirm-deleted"))
+
+        assertTrue(insertedId != null)
+        repository.softDeleteTransaction(insertedId!!)
+        repository.confirmPendingTransaction(insertedId)
+
+        assertEquals(
+            TransactionStatus.Deleted,
+            database.transactionDao().getById(insertedId)?.status,
+        )
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
     fun savePendingNotificationTransaction_ignoresDisabledRule() = runTest {
         repository.ensureDefaultData()
         database.notificationRuleDao().listAll()
