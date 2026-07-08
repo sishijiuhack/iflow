@@ -265,7 +265,7 @@ class LedgerRepository(
         } else {
             TransactionStatus.Pending
         }
-        val categoryId = categories.firstOrNull()?.id ?: return null
+        val categoryId = selectNotificationCategoryId(parsed, categories) ?: return null
         val accountId = selectNotificationAccountId(parsed, accounts)
             ?: accounts.firstOrNull()?.id
             ?: return null
@@ -367,6 +367,17 @@ class LedgerRepository(
             packageName.contains("bank", ignoreCase = true) -> AccountType.Bank
             else -> null
         }
+    }
+
+    private fun selectNotificationCategoryId(
+        parsed: PaymentNotificationParseResult,
+        categories: List<CategoryEntity>,
+    ): Long? {
+        val text = listOf(parsed.rawTitle, parsed.rawText).joinToString(" ")
+        if (parsed.type == TransactionType.Income && text.contains("退款")) {
+            categories.firstOrNull { it.name.contains("退款") }?.let { return it.id }
+        }
+        return categories.firstOrNull()?.id
     }
 
     private fun TransactionEntity.toListItem(

@@ -163,6 +163,25 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesRefundIncomeCategory() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-refund-category").copy(
+                type = TransactionType.Income,
+                sourceApp = "支付宝",
+                packageName = "com.eg.android.AlipayGphone",
+                rawTitle = "支付宝",
+                rawText = "退款到账8.00元 商户：咖啡店",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val category = saved?.categoryId?.let { database.categoryDao().getById(it) }
+
+        assertEquals("退款", category?.name)
+    }
+
+    @Test
     fun setNotificationRuleEnabled_updatesRuleState() = runTest {
         repository.ensureDefaultData()
         val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }
