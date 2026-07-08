@@ -273,6 +273,26 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesBankRuleByTransferInKeyword() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-bank-transfer-in-keyword").copy(
+                type = TransactionType.Income,
+                sourceApp = "银行",
+                packageName = "com.cmbchina.ccd",
+                rawTitle = "动账提醒",
+                rawText = "尾号1234转入人民币12.00元，付款方：公司",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(TransactionType.Income, saved?.type)
+        assertEquals(AccountType.Bank, account?.type)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_matchesAlipayRuleBySourceName() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(
             sampleParsed("fingerprint-alipay-source-rule").copy(

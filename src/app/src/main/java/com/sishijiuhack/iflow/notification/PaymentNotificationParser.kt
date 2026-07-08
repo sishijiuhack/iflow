@@ -17,10 +17,11 @@ class PaymentNotificationParser {
             ?.let(MoneyParser::parseCents)
             ?: return null
 
-        val hasStrongExpenseSignal = strongExpenseKeywords.any { combined.contains(it) }
+        val directionText = merchantLabelRegex.replace(combined, "")
+        val hasStrongExpenseSignal = strongExpenseKeywords.any { directionText.contains(it) }
         val type = when {
-            incomeKeywords.any { combined.contains(it) } && !hasStrongExpenseSignal -> TransactionType.Income
-            hasStrongExpenseSignal || expenseKeywords.any { combined.contains(it) } -> TransactionType.Expense
+            incomeKeywords.any { directionText.contains(it) } && !hasStrongExpenseSignal -> TransactionType.Income
+            hasStrongExpenseSignal || expenseKeywords.any { directionText.contains(it) } -> TransactionType.Expense
             else -> TransactionType.Expense
         }
 
@@ -76,6 +77,7 @@ class PaymentNotificationParser {
             Regex("""(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)"""),
             Regex("""(?:商户名称|交易商户|商户名|商户|交易对手|收款户名|收款方|对方|付款方)[:：]\s*([^，,。]+)"""),
         )
+        val merchantLabelRegex = Regex("""(?:商户名称|交易商户|商户名|商户|交易对手|收款户名|收款方|对方|付款方)[:：]\s*[^，,。]+""")
         val knownPackages = setOf(
             "com.tencent.mm",
             "com.eg.android.AlipayGphone",
@@ -97,7 +99,7 @@ class PaymentNotificationParser {
             "pingan",
         )
         val knownPackageHints = listOf("bank", "unionpay", "alipay") + bankPackageHints
-        val paymentKeywords = listOf("支付", "付款", "扣款", "收款", "退款", "消费", "转账", "交易", "支出", "收入", "到账")
+        val paymentKeywords = listOf("支付", "付款", "扣款", "收款", "退款", "消费", "转账", "转入", "交易", "支出", "收入", "到账")
         val incomeKeywords = listOf("收款", "收入", "到账", "退款", "转入")
         val strongExpenseKeywords = listOf("付款", "扣款", "支出", "消费", "转出")
         val expenseKeywords = listOf("付款", "扣款", "支出", "消费", "支付", "转出")
