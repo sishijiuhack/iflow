@@ -26,6 +26,8 @@ class MoneyParserTest {
         assertNull(MoneyParser.parseCents(""))
         assertNull(MoneyParser.parseCents("."))
         assertNull(MoneyParser.parseCents("abc"))
+        assertNull(MoneyParser.parseCents("0"))
+        assertNull(MoneyParser.parseCents("0.00"))
         assertNull(MoneyParser.parseCents("12.345"))
         assertNull(MoneyParser.parseCents("1,200"))
     }

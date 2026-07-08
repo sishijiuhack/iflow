@@ -15,7 +15,7 @@ object MoneyParser {
         val parts = normalized.split(".")
         val yuan = parts.getOrNull(0)?.takeIf { it.isNotEmpty() }?.toLongOrNull() ?: 0L
         val cents = parts.getOrNull(1).orEmpty().padEnd(2, '0').take(2).toLongOrNull() ?: 0L
-        return yuan * 100 + cents
+        return (yuan * 100 + cents).takeIf { it > 0L }
     }
 
     fun formatInput(cents: Long): String {

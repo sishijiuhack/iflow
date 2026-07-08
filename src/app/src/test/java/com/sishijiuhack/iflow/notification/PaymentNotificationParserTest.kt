@@ -194,6 +194,20 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_zeroAmountPayment_returnsNull() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.tencent.mm",
+                title = "微信支付",
+                text = "向便利店付款0.00元",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNull(result)
+    }
+
+    @Test
     fun parse_unknownPackagePaymentKeyword_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(
