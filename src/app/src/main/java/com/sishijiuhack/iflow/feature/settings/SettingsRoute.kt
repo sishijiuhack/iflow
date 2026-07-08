@@ -2,6 +2,9 @@ package com.sishijiuhack.iflow.feature.settings
 
 import android.content.Intent
 import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,8 +37,35 @@ fun SettingsRoute(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val permissionEnabled = remember { mutableStateOf(isNotificationListenerEnabled(context)) }
+    val pendingExport = remember { mutableStateOf<ExportEvent?>(null) }
     val exportEvent by viewModel.exportEvent.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val saveExport: (android.net.Uri?) -> Unit = { uri ->
+        val event = pendingExport.value
+        if (uri != null && event != null) {
+            runCatching {
+                checkNotNull(context.contentResolver.openOutputStream(uri)) {
+                    "Cannot open export output stream."
+                }.use { output ->
+                    output.write(event.content.toByteArray(Charsets.UTF_8))
+                }
+            }.onSuccess {
+                Toast.makeText(context, "导出完成", Toast.LENGTH_SHORT).show()
+            }.onFailure {
+                Toast.makeText(context, "导出失败", Toast.LENGTH_SHORT).show()
+            }
+        }
+        pendingExport.value = null
+        viewModel.consumeExportEvent()
+    }
+    val jsonExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = saveExport,
+    )
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv"),
+        onResult = saveExport,
+    )
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -51,14 +81,15 @@ fun SettingsRoute(
 
     LaunchedEffect(exportEvent) {
         val event = exportEvent ?: return@LaunchedEffect
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = event.mimeType
-            putExtra(Intent.EXTRA_TITLE, event.fileName)
-            putExtra(Intent.EXTRA_SUBJECT, event.fileName)
-            putExtra(Intent.EXTRA_TEXT, event.content)
+        pendingExport.value = event
+        when (event.mimeType) {
+            "application/json" -> jsonExportLauncher.launch(event.fileName)
+            "text/csv" -> csvExportLauncher.launch(event.fileName)
+            else -> {
+                pendingExport.value = null
+                viewModel.consumeExportEvent()
+            }
         }
-        context.startActivity(Intent.createChooser(sendIntent, "导出账本"))
-        viewModel.consumeExportEvent()
     }
 
     Column(
