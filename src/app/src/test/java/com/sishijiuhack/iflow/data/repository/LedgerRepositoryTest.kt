@@ -15,6 +15,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -98,6 +99,16 @@ class LedgerRepositoryTest {
                 rawTitle = "微信团队",
                 rawText = "安全提醒 12.00元",
             ),
+        )
+
+        assertNull(insertedId)
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
+    }
+
+    @Test
+    fun savePendingNotificationTransaction_rejectsNonPositiveAmount() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-zero-notification").copy(amountCents = 0L),
         )
 
         assertNull(insertedId)
@@ -327,6 +338,27 @@ class LedgerRepositoryTest {
         val snapshot = repository.exportSnapshot()
 
         assertEquals(listOf(newestId, oldestId), snapshot.transactions.map { it.id })
+    }
+
+    @Test
+    fun saveManualTransaction_rejectsNonPositiveAmount() = runTest {
+        repository.ensureDefaultData()
+        val categoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        try {
+            repository.saveManualTransaction(
+                sampleTransaction(
+                    amountCents = -1L,
+                    categoryId = categoryId,
+                    accountId = accountId,
+                    occurredAt = 1_000L,
+                ),
+            )
+            fail("Expected IllegalArgumentException for non-positive amount.")
+        } catch (_: IllegalArgumentException) {
+        }
+        assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
     }
 
     @Test

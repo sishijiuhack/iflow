@@ -225,6 +225,7 @@ class LedgerRepository(
 
     suspend fun saveManualTransaction(input: SaveTransactionInput): Long {
         ensureDefaultData()
+        require(input.amountCents > 0L) { "Transaction amount must be positive." }
         val now = System.currentTimeMillis()
         val existing = input.id?.let { transactionDao.getById(it) }
         val entity = TransactionEntity(
@@ -253,6 +254,7 @@ class LedgerRepository(
 
     suspend fun savePendingNotificationTransaction(parsed: PaymentNotificationParseResult): Long? {
         ensureDefaultData()
+        if (parsed.amountCents <= 0L) return null
         val settings = appSettingDao.get()
         if (settings?.autoCaptureEnabled == false) return null
         if (!hasEnabledRuleFor(parsed)) return null
