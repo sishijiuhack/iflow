@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
 import org.junit.Test
 
@@ -71,5 +72,18 @@ class MainActivitySmokeTest {
         composeRule.onNodeWithText("导出 JSON").assertIsDisplayed()
         composeRule.onNodeWithText("导出 CSV").assertIsDisplayed()
         composeRule.onNodeWithText("通知规则").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsTabShowsPermissionAndPrivacyGuidance() {
+        composeRule.onNodeWithText("设置").performClick()
+
+        composeRule.onNodeWithText("通知读取：", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("前往系统设置开启").assertIsDisplayed()
+        composeRule.onNodeWithText("HyperOS 入口可能随版本变化，请以系统设置页面为准。").assertIsDisplayed()
+        composeRule.onNodeWithText("隐私说明").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("账本、通知解析结果和设置默认仅保存在本机。本应用不上传服务器，不接入第三方统计 SDK，不采集联系人、定位或相册。")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 }
