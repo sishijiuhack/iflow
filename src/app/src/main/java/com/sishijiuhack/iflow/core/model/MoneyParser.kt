@@ -4,12 +4,12 @@ object MoneyParser {
     private val validAmount = Regex("""^\d{0,9}(\.\d{0,2})?$""")
 
     fun isPotentialAmount(input: String): Boolean {
-        val normalized = input.trim()
+        val normalized = input.normalizeAmountInput()
         return normalized.isNotEmpty() && validAmount.matches(normalized)
     }
 
     fun parseCents(input: String): Long? {
-        val normalized = input.trim()
+        val normalized = input.normalizeAmountInput()
         if (!isPotentialAmount(normalized)) return null
         if (normalized.none(Char::isDigit)) return null
         val parts = normalized.split(".")
@@ -22,5 +22,15 @@ object MoneyParser {
         val yuan = cents / 100
         val centPart = (cents % 100).toString().padStart(2, '0')
         return "$yuan.$centPart"
+    }
+
+    private fun String.normalizeAmountInput(): String {
+        return trim().map { char ->
+            when (char) {
+                in '０'..'９' -> '0' + (char - '０')
+                '．', '。' -> '.'
+                else -> char
+            }
+        }.joinToString(separator = "")
     }
 }

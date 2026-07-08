@@ -22,6 +22,13 @@ class MoneyParserTest {
     }
 
     @Test
+    fun parseCents_acceptsFullWidthAmountInput() {
+        assertEquals(1234L, MoneyParser.parseCents("１２．３４"))
+        assertEquals(50L, MoneyParser.parseCents("。５"))
+        assertTrue(MoneyParser.isPotentialAmount("１２．"))
+    }
+
+    @Test
     fun parseCents_rejectsInvalidAmounts() {
         assertNull(MoneyParser.parseCents(""))
         assertNull(MoneyParser.parseCents("."))
