@@ -39,5 +39,6 @@ class MainActivitySmokeTest {
         composeRule.onNodeWithText("本地导出").assertIsDisplayed()
         composeRule.onNodeWithText("导出 JSON").assertIsDisplayed()
         composeRule.onNodeWithText("导出 CSV").assertIsDisplayed()
+        composeRule.onNodeWithText("通知规则").assertIsDisplayed()
     }
 }

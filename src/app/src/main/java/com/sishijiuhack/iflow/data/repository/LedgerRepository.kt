@@ -309,6 +309,12 @@ class LedgerRepository(
         )
     }
 
+    suspend fun setNotificationRuleEnabled(ruleId: Long, enabled: Boolean) {
+        ensureDefaultData()
+        val rule = notificationRuleDao.getById(ruleId) ?: return
+        notificationRuleDao.update(rule.copy(enabled = enabled))
+    }
+
     private suspend fun hasEnabledRuleFor(packageName: String): Boolean {
         return notificationRuleDao.listEnabled().any { rule ->
             packageName == rule.packageName || packageName.contains(rule.packageName, ignoreCase = true)

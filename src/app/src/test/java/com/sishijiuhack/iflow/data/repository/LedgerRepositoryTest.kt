@@ -58,6 +58,16 @@ class LedgerRepositoryTest {
         assertTrue(database.transactionDao().listActiveTransactions().isEmpty())
     }
 
+    @Test
+    fun setNotificationRuleEnabled_updatesRuleState() = runTest {
+        repository.ensureDefaultData()
+        val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }
+
+        repository.setNotificationRuleEnabled(rule.id, false)
+
+        assertEquals(false, database.notificationRuleDao().getById(rule.id)?.enabled)
+    }
+
     private fun sampleParsed(fingerprint: String): PaymentNotificationParseResult {
         return PaymentNotificationParseResult(
             amountCents = 1200L,

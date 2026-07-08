@@ -88,6 +88,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             repository.setDefaultAccount(accountId)
         }
     }
+
+    fun setNotificationRuleEnabled(ruleId: Long, enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setNotificationRuleEnabled(ruleId, enabled)
+        }
+    }
 }
 
 data class ExportEvent(

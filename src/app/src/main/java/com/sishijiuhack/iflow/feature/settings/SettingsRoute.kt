@@ -161,7 +161,17 @@ fun SettingsRoute(
             Text("暂无通知规则")
         } else {
             uiState.notificationRules.forEach { rule ->
-                Text("${rule.appName} · ${if (rule.enabled) "已启用" else "已停用"}")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(rule.appName)
+                    Switch(
+                        checked = rule.enabled,
+                        onCheckedChange = { enabled ->
+                            viewModel.setNotificationRuleEnabled(rule.id, enabled)
+                        },
+                    )
+                }
             }
         }
         Text("隐私说明", style = MaterialTheme.typography.titleMedium)
