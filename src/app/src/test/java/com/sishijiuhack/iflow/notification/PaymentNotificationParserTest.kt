@@ -96,6 +96,24 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_bankDebitKeyword_extractsExpense() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "动账提醒",
+                text = "尾号1234扣款人民币16.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
     fun parse_commonBankPackageVariant_extractsBankSource() {
         val result = parser.parse(
             PaymentNotificationInput(
