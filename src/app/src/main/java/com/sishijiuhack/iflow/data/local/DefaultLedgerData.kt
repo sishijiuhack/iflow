@@ -13,7 +13,7 @@ object DefaultLedgerData {
         """(?:¥|￥|人民币|(?i:RMB|CNY)|金额)\s*((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?)|((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?)\s*元"""
     const val DefaultDirectionPattern = "收款|收入|到账|退款|转入|入账|存入|工资|付款|扣款|支出|消费|支付|转出"
     const val DefaultMerchantPattern =
-        """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款方|对方|付款方)[:：]\s*([^，,。]+)"""
+        """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款方|对方|付款方|付款账户|付款户名|付款人)[:：]\s*([^，,。]+)"""
 
     val categories = listOf(
         CategoryEntity(id = 1L, name = "餐饮", type = TransactionType.Expense, icon = "restaurant", sortOrder = 10, isDefault = true),
