@@ -34,12 +34,6 @@ Notification content is used only for local payment parsing when notification ac
 
 ## Build
 
-The Gradle Wrapper currently uses a local Gradle distribution zip path because the development machine had unreliable access to the Gradle distribution service:
-
-```text
-E:/iflow/gradle-8.7-bin.zip
-```
-
 With JDK 17 and Android SDK 35 available:
 
 ```powershell
