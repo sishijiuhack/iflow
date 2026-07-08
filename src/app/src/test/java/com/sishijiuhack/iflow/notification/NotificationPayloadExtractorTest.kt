@@ -27,4 +27,21 @@ class NotificationPayloadExtractorTest {
             NotificationPayloadExtractor.textFrom(extras),
         )
     }
+
+    @Test
+    fun textFrom_deduplicatesRepeatedTextFragments() {
+        val extras = Bundle().apply {
+            putCharSequence(Notification.EXTRA_TEXT, "支出人民币16.20元")
+            putCharSequence(Notification.EXTRA_BIG_TEXT, "支出人民币16.20元")
+            putCharSequenceArray(
+                Notification.EXTRA_TEXT_LINES,
+                arrayOf("商户：地铁", "支出人民币16.20元"),
+            )
+        }
+
+        assertEquals(
+            "支出人民币16.20元 商户：地铁",
+            NotificationPayloadExtractor.textFrom(extras),
+        )
+    }
 }

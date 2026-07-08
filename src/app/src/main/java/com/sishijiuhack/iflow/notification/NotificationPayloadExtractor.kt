@@ -12,10 +12,14 @@ object NotificationPayloadExtractor {
         return listOfNotNull(
             extras.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
             extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
-            extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
-                ?.joinToString(separator = " ") { it.toString() },
         )
+            .plus(
+                extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+                    ?.map { it.toString() }
+                    .orEmpty(),
+            )
             .filter { it.isNotBlank() }
+            .distinct()
             .joinToString(separator = " ")
     }
 }
