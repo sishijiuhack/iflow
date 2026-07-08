@@ -65,6 +65,16 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun ledgerAddActionOpensTransactionForm() {
+        composeRule.onNodeWithText("流水").performClick()
+        composeRule.onNodeWithText("新增流水").performClick()
+
+        composeRule.onNodeWithText("记一笔").assertIsDisplayed()
+        composeRule.onNodeWithText("金额").assertIsDisplayed()
+        composeRule.onNodeWithText("保存").assertIsDisplayed()
+    }
+
+    @Test
     fun statsTabShowsSummaryAndBars() {
         composeRule.onNodeWithText("统计").performClick()
 
