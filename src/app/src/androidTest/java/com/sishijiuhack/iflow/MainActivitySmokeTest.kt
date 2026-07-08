@@ -22,6 +22,18 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun homeQuickEntryOpensTransactionForm() {
+        composeRule.onNodeWithText("记一笔").performClick()
+
+        composeRule.onNodeWithText("记一笔").assertIsDisplayed()
+        composeRule.onNodeWithText("金额").assertIsDisplayed()
+        composeRule.onNodeWithText("分类").assertIsDisplayed()
+        composeRule.onNodeWithText("账户").assertIsDisplayed()
+        composeRule.onNodeWithText("时间").assertIsDisplayed()
+        composeRule.onNodeWithText("保存").assertIsDisplayed()
+    }
+
+    @Test
     fun ledgerTabShowsFilterControls() {
         composeRule.onNodeWithText("流水").performClick()
 
