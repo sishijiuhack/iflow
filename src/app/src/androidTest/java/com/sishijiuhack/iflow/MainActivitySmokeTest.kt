@@ -45,6 +45,15 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun pendingListBackReturnsHome() {
+        composeRule.onNodeWithText("待确认 0 笔").performClick()
+        composeRule.onNodeWithText("返回").performClick()
+
+        composeRule.onNodeWithText("本月概览").assertIsDisplayed()
+        composeRule.onNodeWithText("记一笔").assertIsDisplayed()
+    }
+
+    @Test
     fun ledgerTabShowsFilterControls() {
         composeRule.onNodeWithText("流水").performClick()
 
