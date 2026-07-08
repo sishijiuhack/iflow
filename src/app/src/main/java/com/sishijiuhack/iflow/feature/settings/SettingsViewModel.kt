@@ -5,7 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sishijiuhack.iflow.core.android.appContainer
 import com.sishijiuhack.iflow.data.export.LedgerExporter
+import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +21,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _exportEvent = MutableStateFlow<ExportEvent?>(null)
     val exportEvent: StateFlow<ExportEvent?> = _exportEvent
 
-    val settings: StateFlow<AppSettingEntity?> = repository.observeSettings()
+    val uiState: StateFlow<SettingsUiState> = combine(
+        repository.observeSettings(),
+        repository.observeAccounts(),
+    ) { settings, accounts ->
+        SettingsUiState(
+            settings = settings,
+            accounts = accounts,
+        )
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = null,
+            initialValue = SettingsUiState(),
         )
 
     init {
@@ -69,10 +79,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             repository.setAutoConfirmEnabled(enabled)
         }
     }
+
+    fun setDefaultAccount(accountId: Long) {
+        viewModelScope.launch {
+            repository.setDefaultAccount(accountId)
+        }
+    }
 }
 
 data class ExportEvent(
     val fileName: String,
     val mimeType: String,
     val content: String,
+)
+
+data class SettingsUiState(
+    val settings: AppSettingEntity? = null,
+    val accounts: List<AccountEntity> = emptyList(),
 )

@@ -35,10 +35,15 @@ class TransactionFormViewModel(
         formState,
         repository.observeCategories(),
         repository.observeAccounts(),
+        repository.observeSettings(),
         saveFinished,
-    ) { form, categories, accounts, finished ->
+    ) { form, categories, accounts, settings, finished ->
         val categoriesForType = categories.filter { it.type == form.type }
-        val normalizedForm = form.withDefaults(categoriesForType, accounts)
+        val normalizedForm = form.withDefaults(
+            categories = categoriesForType,
+            accounts = accounts,
+            defaultAccountId = settings?.defaultAccountId,
+        )
         if (normalizedForm != form) {
             formState.value = normalizedForm
         }
@@ -161,10 +166,12 @@ data class TransactionFormState(
     fun withDefaults(
         categories: List<CategoryEntity>,
         accounts: List<AccountEntity>,
+        defaultAccountId: Long?,
     ): TransactionFormState {
+        val defaultAccount = accounts.firstOrNull { it.id == defaultAccountId } ?: accounts.firstOrNull()
         return copy(
             categoryId = categoryId ?: categories.firstOrNull()?.id,
-            accountId = accountId ?: accounts.firstOrNull()?.id,
+            accountId = accountId ?: defaultAccount?.id,
         )
     }
 }

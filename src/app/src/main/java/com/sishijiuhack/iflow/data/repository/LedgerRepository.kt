@@ -267,6 +267,18 @@ class LedgerRepository(
         )
     }
 
+    suspend fun setDefaultAccount(accountId: Long) {
+        ensureDefaultData()
+        if (accountDao.getById(accountId) == null) return
+        val current = appSettingDao.get() ?: return
+        appSettingDao.update(
+            current.copy(
+                defaultAccountId = accountId,
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+    }
+
     private fun TransactionEntity.toListItem(
         categoryName: String,
         accountName: String,

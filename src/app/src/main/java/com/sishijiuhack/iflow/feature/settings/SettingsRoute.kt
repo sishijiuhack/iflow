@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -34,7 +35,7 @@ fun SettingsRoute(
     val lifecycleOwner = LocalLifecycleOwner.current
     val permissionEnabled = remember { mutableStateOf(isNotificationListenerEnabled(context)) }
     val exportEvent by viewModel.exportEvent.collectAsStateWithLifecycle()
-    val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -86,7 +87,7 @@ fun SettingsRoute(
         ) {
             Text("捕获支付通知")
             Switch(
-                checked = settings?.autoCaptureEnabled ?: true,
+                checked = uiState.settings?.autoCaptureEnabled ?: true,
                 onCheckedChange = viewModel::setAutoCaptureEnabled,
             )
         }
@@ -95,11 +96,21 @@ fun SettingsRoute(
         ) {
             Text("自动确认低风险记录")
             Switch(
-                checked = settings?.autoConfirmEnabled ?: false,
+                checked = uiState.settings?.autoConfirmEnabled ?: false,
                 onCheckedChange = viewModel::setAutoConfirmEnabled,
             )
         }
         Text("默认策略是先进入待确认；开启自动确认后，解析成功的通知会直接进入正式流水。")
+        Text("默认账户", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            uiState.accounts.forEach { account ->
+                FilterChip(
+                    selected = uiState.settings?.defaultAccountId == account.id,
+                    onClick = { viewModel.setDefaultAccount(account.id) },
+                    label = { Text(account.name) },
+                )
+            }
+        }
         Text("本地导出", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = viewModel::exportJson) {
