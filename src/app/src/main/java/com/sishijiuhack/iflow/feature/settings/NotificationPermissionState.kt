@@ -11,5 +11,14 @@ fun isNotificationListenerEnabled(context: Context): Boolean {
         context.contentResolver,
         "enabled_notification_listeners",
     ).orEmpty()
-    return enabledListeners.split(":").any { it.equals(flatName, ignoreCase = true) }
+    return containsEnabledNotificationListener(enabledListeners, flatName)
+}
+
+internal fun containsEnabledNotificationListener(
+    enabledListeners: String,
+    flatName: String,
+): Boolean {
+    return enabledListeners
+        .split(":")
+        .any { it.trim().equals(flatName, ignoreCase = true) }
 }
