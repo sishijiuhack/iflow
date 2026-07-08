@@ -35,6 +35,15 @@ class MainActivitySmokeTest {
     }
 
     @Test
+    fun homePendingEntryOpensPendingList() {
+        composeRule.onNodeWithText("待确认 0 笔").performClick()
+
+        composeRule.onNodeWithText("待确认").assertIsDisplayed()
+        composeRule.onNodeWithText("返回").assertIsDisplayed()
+        composeRule.onNodeWithText("没有待确认记录。").assertIsDisplayed()
+    }
+
+    @Test
     fun ledgerTabShowsFilterControls() {
         composeRule.onNodeWithText("流水").performClick()
 
