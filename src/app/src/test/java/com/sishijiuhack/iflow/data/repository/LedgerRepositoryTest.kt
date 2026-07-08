@@ -343,6 +343,45 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesBankRuleByCreditKeyword() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-bank-credit-keyword").copy(
+                type = TransactionType.Income,
+                sourceApp = "银行",
+                packageName = "com.cmbchina.ccd",
+                rawTitle = "动账提醒",
+                rawText = "尾号1234贷记人民币5000.00元，付款人：公司",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(TransactionType.Income, saved?.type)
+        assertEquals(AccountType.Bank, account?.type)
+    }
+
+    @Test
+    fun savePendingNotificationTransaction_matchesBankRuleByDebitAccountingKeyword() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-bank-debit-accounting-keyword").copy(
+                sourceApp = "银行",
+                packageName = "com.cmbchina.ccd",
+                rawTitle = "动账提醒",
+                rawText = "尾号1234借记人民币12.00元，收款方：便利店",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(TransactionType.Expense, saved?.type)
+        assertEquals(AccountType.Bank, account?.type)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_matchesAlipayRuleBySourceName() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(
             sampleParsed("fingerprint-alipay-source-rule").copy(

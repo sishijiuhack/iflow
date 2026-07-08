@@ -186,6 +186,42 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_bankCreditKeyword_extractsIncome() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "动账提醒",
+                text = "尾号1234贷记人民币168.20元，付款人：公司",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Income, result?.type)
+        assertEquals(16820L, result?.amountCents)
+        assertEquals("公司", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
+    fun parse_bankDebitAccountingKeyword_extractsExpense() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "动账提醒",
+                text = "尾号1234借记人民币16.20元，收款方：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+        assertEquals("银行", result?.sourceApp)
+    }
+
+    @Test
     fun parse_commonBankPackageVariant_extractsBankSource() {
         val result = parser.parse(
             PaymentNotificationInput(
