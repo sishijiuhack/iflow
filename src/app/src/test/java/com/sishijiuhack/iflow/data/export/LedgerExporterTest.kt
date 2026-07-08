@@ -2,6 +2,7 @@ package com.sishijiuhack.iflow.data.export
 
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
+import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.data.local.entity.TransactionEntity
 import com.sishijiuhack.iflow.data.repository.LedgerExportSnapshot
 import com.sishijiuhack.iflow.domain.model.AccountType
@@ -22,6 +23,8 @@ class LedgerExporterTest {
         assertTrue(json.contains("\"amountCents\": 1200"))
         assertTrue(json.contains("\"categories\""))
         assertTrue(json.contains("\"accounts\""))
+        assertTrue(json.contains("\"notificationRules\""))
+        assertTrue(json.contains("\"packageName\": \"com.tencent.mm\""))
     }
 
     @Test
@@ -40,6 +43,18 @@ class LedgerExporterTest {
             ),
             accounts = listOf(
                 AccountEntity(id = 1L, name = "现金", type = AccountType.Cash, sortOrder = 1, isDefault = true),
+            ),
+            notificationRules = listOf(
+                NotificationRuleEntity(
+                    id = 1L,
+                    packageName = "com.tencent.mm",
+                    appName = "微信",
+                    enabled = true,
+                    keywords = listOf("付款", "收款"),
+                    amountPattern = """(\d+(?:\.\d{1,2})?)元""",
+                    directionPattern = "付款|收款",
+                    merchantPattern = null,
+                ),
             ),
             transactions = listOf(
                 TransactionEntity(

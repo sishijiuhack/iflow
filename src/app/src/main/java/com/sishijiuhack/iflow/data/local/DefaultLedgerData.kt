@@ -3,6 +3,7 @@ package com.sishijiuhack.iflow.data.local
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
+import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionType
 
@@ -38,5 +39,48 @@ object DefaultLedgerData {
         lastExportedAt = null,
         createdAt = 0L,
         updatedAt = 0L,
+    )
+
+    val notificationRules = listOf(
+        NotificationRuleEntity(
+            id = 1L,
+            packageName = "com.tencent.mm",
+            appName = "微信",
+            enabled = true,
+            keywords = listOf("微信支付", "付款", "收款", "退款", "转账"),
+            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            directionPattern = "收款|收入|到账|退款|转入|付款|支出|消费|支付|转出",
+            merchantPattern = """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户|收款方|对方|付款方)[:：]\s*([^，,。]+)""",
+        ),
+        NotificationRuleEntity(
+            id = 2L,
+            packageName = "com.eg.android.AlipayGphone",
+            appName = "支付宝",
+            enabled = true,
+            keywords = listOf("支付宝", "支付", "付款", "收款", "退款", "转账"),
+            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            directionPattern = "收款|收入|到账|退款|转入|付款|支出|消费|支付|转出",
+            merchantPattern = """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户|收款方|对方|付款方)[:：]\s*([^，,。]+)""",
+        ),
+        NotificationRuleEntity(
+            id = 3L,
+            packageName = "com.unionpay",
+            appName = "银联",
+            enabled = true,
+            keywords = listOf("银联", "交易", "消费", "支出", "收入", "到账"),
+            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            directionPattern = "收款|收入|到账|退款|转入|付款|支出|消费|支付|转出",
+            merchantPattern = """(?:商户|收款方|对方|付款方)[:：]\s*([^，,。]+)""",
+        ),
+        NotificationRuleEntity(
+            id = 4L,
+            packageName = "bank",
+            appName = "银行",
+            enabled = true,
+            keywords = listOf("交易", "消费", "支出", "收入", "到账", "退款"),
+            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            directionPattern = "收款|收入|到账|退款|转入|付款|支出|消费|支付|转出",
+            merchantPattern = """(?:商户|收款方|对方|付款方)[:：]\s*([^，,。]+)""",
+        ),
     )
 }

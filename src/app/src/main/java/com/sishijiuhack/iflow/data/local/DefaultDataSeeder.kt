@@ -6,6 +6,7 @@ class DefaultDataSeeder(
     suspend fun seedIfNeeded(nowMillis: Long = System.currentTimeMillis()) {
         val categoryDao = database.categoryDao()
         val accountDao = database.accountDao()
+        val notificationRuleDao = database.notificationRuleDao()
         val appSettingDao = database.appSettingDao()
 
         if (categoryDao.count() == 0) {
@@ -14,6 +15,10 @@ class DefaultDataSeeder(
 
         if (accountDao.count() == 0) {
             accountDao.upsertAll(DefaultLedgerData.accounts)
+        }
+
+        if (notificationRuleDao.count() == 0) {
+            notificationRuleDao.upsertAll(DefaultLedgerData.notificationRules)
         }
 
         if (appSettingDao.get() == null) {

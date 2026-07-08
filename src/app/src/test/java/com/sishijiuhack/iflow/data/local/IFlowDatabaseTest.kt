@@ -40,6 +40,8 @@ class IFlowDatabaseTest {
 
         assertEquals(DefaultLedgerData.categories.size, database.categoryDao().count())
         assertEquals(DefaultLedgerData.accounts.size, database.accountDao().count())
+        assertEquals(DefaultLedgerData.notificationRules.size, database.notificationRuleDao().count())
+        assertTrue(database.notificationRuleDao().listEnabled().any { it.appName == "微信" })
 
         val setting = database.appSettingDao().get()
         assertNotNull(setting)

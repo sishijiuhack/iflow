@@ -13,6 +13,9 @@ interface NotificationRuleDao {
     @Upsert
     suspend fun upsert(rule: NotificationRuleEntity): Long
 
+    @Upsert
+    suspend fun upsertAll(rules: List<NotificationRuleEntity>)
+
     @Update
     suspend fun update(rule: NotificationRuleEntity)
 
@@ -24,6 +27,12 @@ interface NotificationRuleDao {
 
     @Query("SELECT * FROM notification_rules WHERE enabled = 1 ORDER BY appName, id")
     suspend fun listEnabled(): List<NotificationRuleEntity>
+
+    @Query("SELECT * FROM notification_rules ORDER BY appName, id")
+    suspend fun listAll(): List<NotificationRuleEntity>
+
+    @Query("SELECT COUNT(*) FROM notification_rules")
+    suspend fun count(): Int
 
     @Query("SELECT * FROM notification_rules ORDER BY appName, id")
     fun observeAll(): Flow<List<NotificationRuleEntity>>

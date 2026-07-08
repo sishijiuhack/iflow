@@ -5,6 +5,7 @@ import com.sishijiuhack.iflow.data.local.IFlowDatabase
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
+import com.sishijiuhack.iflow.data.local.entity.NotificationRuleEntity
 import com.sishijiuhack.iflow.data.local.entity.TransactionEntity
 import com.sishijiuhack.iflow.domain.model.TransactionSource
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
@@ -23,6 +24,7 @@ class LedgerRepository(
     private val transactionDao = database.transactionDao()
     private val categoryDao = database.categoryDao()
     private val accountDao = database.accountDao()
+    private val notificationRuleDao = database.notificationRuleDao()
     private val appSettingDao = database.appSettingDao()
 
     suspend fun ensureDefaultData() {
@@ -185,6 +187,7 @@ class LedgerRepository(
             transactions = transactionDao.listActiveTransactions(),
             categories = categoryDao.observeAllSnapshot(),
             accounts = accountDao.listAll(),
+            notificationRules = notificationRuleDao.listAll(),
             settings = appSettingDao.get(),
         )
     }
@@ -366,5 +369,6 @@ data class LedgerExportSnapshot(
     val transactions: List<TransactionEntity>,
     val categories: List<CategoryEntity>,
     val accounts: List<AccountEntity>,
-    val settings: com.sishijiuhack.iflow.data.local.entity.AppSettingEntity?,
+    val notificationRules: List<NotificationRuleEntity>,
+    val settings: AppSettingEntity?,
 )

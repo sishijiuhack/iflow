@@ -32,6 +32,21 @@ class LedgerExporter {
                 appendLine(if (index == snapshot.accounts.lastIndex) "" else ",")
             }
             appendLine("  ],")
+            appendLine("  \"notificationRules\": [")
+            snapshot.notificationRules.forEachIndexed { index, rule ->
+                append("    {")
+                append("\"id\": ${rule.id}, ")
+                append("\"packageName\": \"${rule.packageName.escapeJson()}\", ")
+                append("\"appName\": \"${rule.appName.escapeJson()}\", ")
+                append("\"enabled\": ${rule.enabled}, ")
+                append("\"keywords\": [${rule.keywords.joinToString(", ") { "\"${it.escapeJson()}\"" }}], ")
+                append("\"amountPattern\": \"${rule.amountPattern.escapeJson()}\", ")
+                append("\"directionPattern\": \"${rule.directionPattern.escapeJson()}\", ")
+                append("\"merchantPattern\": ${rule.merchantPattern?.let { "\"${it.escapeJson()}\"" } ?: "null"}")
+                append("}")
+                appendLine(if (index == snapshot.notificationRules.lastIndex) "" else ",")
+            }
+            appendLine("  ],")
             appendLine("  \"transactions\": [")
             snapshot.transactions.forEachIndexed { index, transaction ->
                 append("    {")
