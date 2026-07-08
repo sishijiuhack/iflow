@@ -52,6 +52,7 @@ class PaymentNotificationParser {
             packageName == "com.eg.android.AlipayGphone" -> "支付宝"
             packageName.contains("unionpay") -> "银联"
             packageName.contains("bank", ignoreCase = true) -> "银行"
+            packageName.contains("alipay", ignoreCase = true) -> "支付宝"
             else -> packageName
         }
     }

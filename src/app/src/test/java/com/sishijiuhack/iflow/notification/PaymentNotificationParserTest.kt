@@ -63,6 +63,21 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_alipayPackageVariant_usesReadableSourceName() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.alipay.mobile",
+                title = "\u652f\u4ed8\u5b9d",
+                text = "\u4f60\u5df2\u5411\u661f\u5df4\u514b\u652f\u4ed8\uffe532.80",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals("\u652f\u4ed8\u5b9d", result?.sourceApp)
+    }
+
+    @Test
     fun parse_bankExpenseWithOnlySpendingKeyword_extractsExpense() {
         val result = parser.parse(
             PaymentNotificationInput(
