@@ -55,6 +55,9 @@ class IFlowDatabaseTest {
 
         val rules = database.notificationRuleDao().listAll()
 
+        assertTrue(rules.all { it.amountPattern.contains("RMB") })
+        assertTrue(rules.all { it.amountPattern.contains("CNY") })
+        assertTrue(rules.all { it.amountPattern.contains("[,，]") })
         assertTrue(rules.all { it.directionPattern.contains("扣款") })
         assertTrue(rules.all { it.directionPattern.contains("入账") })
         assertTrue(rules.all { it.directionPattern.contains("存入") })

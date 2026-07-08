@@ -9,6 +9,8 @@ import com.sishijiuhack.iflow.domain.model.TransactionType
 
 object DefaultLedgerData {
     const val DefaultAccountId = 1L
+    const val DefaultAmountPattern =
+        """(?:¥|￥|人民币|RMB|CNY|金额)\s*((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?)|((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?)\s*元"""
     const val DefaultDirectionPattern = "收款|收入|到账|退款|转入|入账|存入|工资|付款|扣款|支出|消费|支付|转出"
     const val DefaultMerchantPattern =
         """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|收款户名|收款方|对方|付款方)[:：]\s*([^，,。]+)"""
@@ -51,7 +53,7 @@ object DefaultLedgerData {
             appName = "微信",
             enabled = true,
             keywords = listOf("微信支付", "付款", "收款", "退款", "转账"),
-            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            amountPattern = DefaultAmountPattern,
             directionPattern = DefaultDirectionPattern,
             merchantPattern = DefaultMerchantPattern,
         ),
@@ -61,7 +63,7 @@ object DefaultLedgerData {
             appName = "支付宝",
             enabled = true,
             keywords = listOf("支付宝", "支付", "付款", "收款", "退款", "转账"),
-            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            amountPattern = DefaultAmountPattern,
             directionPattern = DefaultDirectionPattern,
             merchantPattern = DefaultMerchantPattern,
         ),
@@ -71,7 +73,7 @@ object DefaultLedgerData {
             appName = "银联",
             enabled = true,
             keywords = listOf("银联", "交易", "消费", "支出", "付款", "支付", "扣款", "转出", "转入", "入账", "存入", "收入", "到账"),
-            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            amountPattern = DefaultAmountPattern,
             directionPattern = DefaultDirectionPattern,
             merchantPattern = DefaultMerchantPattern,
         ),
@@ -81,7 +83,7 @@ object DefaultLedgerData {
             appName = "银行",
             enabled = true,
             keywords = listOf("交易", "消费", "支出", "付款", "支付", "扣款", "转出", "转入", "入账", "存入", "工资", "收入", "到账", "退款"),
-            amountPattern = """(?:¥|￥|人民币|金额)\s*(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s*元""",
+            amountPattern = DefaultAmountPattern,
             directionPattern = DefaultDirectionPattern,
             merchantPattern = DefaultMerchantPattern,
         ),
