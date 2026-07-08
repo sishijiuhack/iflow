@@ -61,4 +61,18 @@ class NotificationPayloadExtractorTest {
             NotificationPayloadExtractor.textFrom(extras),
         )
     }
+
+    @Test
+    fun textFrom_includesSupplementalNotificationFields() {
+        val extras = Bundle().apply {
+            putCharSequence(Notification.EXTRA_TEXT, "Paid 16.20")
+            putCharSequence(Notification.EXTRA_SUB_TEXT, "Bank card 1234")
+            putCharSequence(Notification.EXTRA_INFO_TEXT, "Merchant Metro")
+        }
+
+        assertEquals(
+            "Paid 16.20 Bank card 1234 Merchant Metro",
+            NotificationPayloadExtractor.textFrom(extras),
+        )
+    }
 }
