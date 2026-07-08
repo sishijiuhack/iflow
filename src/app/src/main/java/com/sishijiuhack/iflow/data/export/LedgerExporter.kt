@@ -132,13 +132,17 @@ class LedgerExporter {
     }
 
     private fun String.escapeCsv(): String {
-        val safeValue = if (firstOrNull() in csvFormulaPrefixes) "'$this" else this
+        val safeValue = if (firstNonWhitespaceChar() in csvFormulaPrefixes) "'$this" else this
         val escaped = safeValue.replace("\"", "\"\"")
         return if (escaped.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
             "\"$escaped\""
         } else {
             escaped
         }
+    }
+
+    private fun String.firstNonWhitespaceChar(): Char? {
+        return firstOrNull { !it.isWhitespace() }
     }
 
     private companion object {
