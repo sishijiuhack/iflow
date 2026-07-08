@@ -29,6 +29,15 @@ class MoneyParserTest {
     }
 
     @Test
+    fun parseCents_acceptsCurrencyMarkedAmountInput() {
+        assertEquals(1234L, MoneyParser.parseCents("￥１２．３４"))
+        assertEquals(1234L, MoneyParser.parseCents("12.34元"))
+        assertEquals(1234L, MoneyParser.parseCents("RMB 12.34"))
+        assertEquals(1234L, MoneyParser.parseCents("人民币12.34"))
+        assertTrue(MoneyParser.isPotentialAmount("CNY 12."))
+    }
+
+    @Test
     fun parseCents_rejectsInvalidAmounts() {
         assertNull(MoneyParser.parseCents(""))
         assertNull(MoneyParser.parseCents("."))

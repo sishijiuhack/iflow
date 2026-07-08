@@ -25,12 +25,15 @@ object MoneyParser {
     }
 
     private fun String.normalizeAmountInput(): String {
-        return trim().map { char ->
+        val normalized = trim().map { char ->
             when (char) {
                 in '０'..'９' -> '0' + (char - '０')
                 '．', '。' -> '.'
                 else -> char
             }
         }.joinToString(separator = "")
+        return normalized
+            .replace(Regex("人民币|rmb|cny", RegexOption.IGNORE_CASE), "")
+            .filterNot { it == '¥' || it == '￥' || it == '元' || it.isWhitespace() }
     }
 }
