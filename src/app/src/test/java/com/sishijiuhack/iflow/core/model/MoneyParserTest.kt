@@ -38,6 +38,12 @@ class MoneyParserTest {
     }
 
     @Test
+    fun parseCents_acceptsExactYuanAmountInput() {
+        assertEquals(50000L, MoneyParser.parseCents("500元整"))
+        assertEquals(50000L, MoneyParser.parseCents("￥５００元整"))
+    }
+
+    @Test
     fun parseCents_rejectsInvalidAmounts() {
         assertNull(MoneyParser.parseCents(""))
         assertNull(MoneyParser.parseCents("."))

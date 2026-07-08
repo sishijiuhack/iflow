@@ -34,6 +34,6 @@ object MoneyParser {
         }.joinToString(separator = "")
         return normalized
             .replace(Regex("人民币|rmb|cny", RegexOption.IGNORE_CASE), "")
-            .filterNot { it == '¥' || it == '￥' || it == '元' || it.isWhitespace() }
+            .filterNot { it == '¥' || it == '￥' || it == '元' || it == '整' || it.isWhitespace() }
     }
 }
