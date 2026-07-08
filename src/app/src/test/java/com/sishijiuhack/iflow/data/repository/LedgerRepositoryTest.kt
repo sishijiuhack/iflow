@@ -255,6 +255,18 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_storesBlankParsedMerchantAsNull() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-blank-notification-merchant").copy(
+                merchant = "   ",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        assertNull(database.transactionDao().getById(insertedId!!)?.merchant)
+    }
+
+    @Test
     fun savePendingNotificationTransaction_matchesBankRuleBySourceName() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(
             sampleParsed("fingerprint-bank-source-rule").copy(
