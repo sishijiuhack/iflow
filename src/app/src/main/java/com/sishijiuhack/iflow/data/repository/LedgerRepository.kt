@@ -265,7 +265,9 @@ class LedgerRepository(
             TransactionStatus.Pending
         }
         val categoryId = categories.firstOrNull()?.id ?: return null
-        val accountId = accounts.firstOrNull { parsed.sourceApp.contains(it.name) }?.id
+        val accountId = accounts.firstOrNull {
+            parsed.sourceApp.contains(it.name) || it.name.contains(parsed.sourceApp)
+        }?.id
             ?: accounts.firstOrNull()?.id
             ?: return null
 

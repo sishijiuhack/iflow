@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
+import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import com.sishijiuhack.iflow.notification.PaymentNotificationParseResult
@@ -123,6 +124,24 @@ class LedgerRepositoryTest {
             TransactionStatus.Confirmed,
             database.transactionDao().getById(insertedId!!)?.status,
         )
+    }
+
+    @Test
+    fun savePendingNotificationTransaction_matchesBankAccountByPartialSourceName() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-bank-account").copy(
+                sourceApp = "银行",
+                packageName = "com.example.bank",
+                rawTitle = "交易提醒",
+                rawText = "支出人民币12.00元",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val account = saved?.accountId?.let { database.accountDao().getById(it) }
+
+        assertEquals(AccountType.Bank, account?.type)
     }
 
     @Test
