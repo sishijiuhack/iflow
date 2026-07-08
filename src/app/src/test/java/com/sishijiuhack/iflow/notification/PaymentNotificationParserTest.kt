@@ -127,6 +127,20 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_unknownPackagePaymentKeyword_returnsNull() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.random.app",
+                title = "閾惰仈浜ゆ槗鎻愰啋",
+                text = "娑堣垂锟?5.60锛屽晢鎴凤細瓒呭競",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNull(result)
+    }
+
+    @Test
     fun fingerprint_sameNotificationInSameMinute_isStable() {
         val first = NotificationFingerprint.create("pkg", "title", "text", 120_000L, 100L)
         val second = NotificationFingerprint.create("pkg", "title", "text", 150_000L, 100L)
