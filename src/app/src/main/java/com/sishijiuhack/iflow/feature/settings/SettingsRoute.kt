@@ -53,6 +53,7 @@ fun SettingsRoute(
                     output.write(event.content.toByteArray(Charsets.UTF_8))
                 }
             }.onSuccess {
+                viewModel.markExportCompleted(event.exportedAt)
                 Toast.makeText(context, "导出完成", Toast.LENGTH_SHORT).show()
             }.onFailure {
                 Toast.makeText(context, "导出失败", Toast.LENGTH_SHORT).show()

@@ -50,6 +50,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val snapshot = repository.exportSnapshot()
             _exportEvent.value = ExportEvent(
+                exportedAt = snapshot.exportedAt,
                 fileName = "iflow-${snapshot.exportedAt.formatExportFileTime()}.json",
                 mimeType = "application/json",
                 content = exporter.toJson(snapshot),
@@ -61,6 +62,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val snapshot = repository.exportSnapshot()
             _exportEvent.value = ExportEvent(
+                exportedAt = snapshot.exportedAt,
                 fileName = "iflow-${snapshot.exportedAt.formatExportFileTime()}.csv",
                 mimeType = "text/csv",
                 content = exporter.toCsv(snapshot),
@@ -70,6 +72,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun consumeExportEvent() {
         _exportEvent.value = null
+    }
+
+    fun markExportCompleted(exportedAt: Long) {
+        viewModelScope.launch {
+            repository.markExportCompleted(exportedAt)
+        }
     }
 
     fun setAutoCaptureEnabled(enabled: Boolean) {
@@ -98,6 +106,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 }
 
 data class ExportEvent(
+    val exportedAt: Long,
     val fileName: String,
     val mimeType: String,
     val content: String,

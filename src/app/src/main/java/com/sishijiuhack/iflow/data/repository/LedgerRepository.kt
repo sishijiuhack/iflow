@@ -206,20 +206,24 @@ class LedgerRepository(
     suspend fun exportSnapshot(): LedgerExportSnapshot {
         ensureDefaultData()
         val exportedAt = System.currentTimeMillis()
-        val updatedSettings = appSettingDao.get()?.copy(
-            lastExportedAt = exportedAt,
-            updatedAt = exportedAt,
-        )
-        if (updatedSettings != null) {
-            appSettingDao.update(updatedSettings)
-        }
         return LedgerExportSnapshot(
             exportedAt = exportedAt,
             transactions = transactionDao.listActiveTransactions(),
             categories = categoryDao.observeAllSnapshot(),
             accounts = accountDao.listAll(),
             notificationRules = notificationRuleDao.listAll(),
-            settings = updatedSettings,
+            settings = appSettingDao.get(),
+        )
+    }
+
+    suspend fun markExportCompleted(exportedAt: Long) {
+        ensureDefaultData()
+        val current = appSettingDao.get() ?: return
+        appSettingDao.update(
+            current.copy(
+                lastExportedAt = exportedAt,
+                updatedAt = exportedAt,
+            ),
         )
     }
 

@@ -376,17 +376,27 @@ class LedgerRepositoryTest {
     }
 
     @Test
-    fun exportSnapshot_updatesLastExportedAt() = runTest {
+    fun exportSnapshot_doesNotUpdateLastExportedAtBeforeFileIsSaved() = runTest {
         repository.ensureDefaultData()
 
         val snapshot = repository.exportSnapshot()
         val savedSettings = database.appSettingDao().get()
 
         assertTrue(snapshot.exportedAt > 0L)
-        assertEquals(snapshot.exportedAt, snapshot.settings?.lastExportedAt)
-        assertEquals(snapshot.exportedAt, snapshot.settings?.updatedAt)
-        assertEquals(snapshot.exportedAt, savedSettings?.lastExportedAt)
-        assertEquals(snapshot.exportedAt, savedSettings?.updatedAt)
+        assertEquals(null, snapshot.settings?.lastExportedAt)
+        assertEquals(null, savedSettings?.lastExportedAt)
+    }
+
+    @Test
+    fun markExportCompleted_updatesLastExportedAt() = runTest {
+        repository.ensureDefaultData()
+        val exportedAt = 2_000L
+
+        repository.markExportCompleted(exportedAt)
+
+        val savedSettings = database.appSettingDao().get()
+        assertEquals(exportedAt, savedSettings?.lastExportedAt)
+        assertEquals(exportedAt, savedSettings?.updatedAt)
     }
 
     @Test
