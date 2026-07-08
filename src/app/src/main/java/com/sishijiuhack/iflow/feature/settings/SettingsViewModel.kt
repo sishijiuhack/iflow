@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sishijiuhack.iflow.core.android.appContainer
+import com.sishijiuhack.iflow.core.model.formatExportFileTime
 import com.sishijiuhack.iflow.data.export.LedgerExporter
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.AppSettingEntity
@@ -49,7 +50,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val snapshot = repository.exportSnapshot()
             _exportEvent.value = ExportEvent(
-                fileName = "iflow-${snapshot.exportedAt}.json",
+                fileName = "iflow-${snapshot.exportedAt.formatExportFileTime()}.json",
                 mimeType = "application/json",
                 content = exporter.toJson(snapshot),
             )
@@ -60,7 +61,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val snapshot = repository.exportSnapshot()
             _exportEvent.value = ExportEvent(
-                fileName = "iflow-${snapshot.exportedAt}.csv",
+                fileName = "iflow-${snapshot.exportedAt.formatExportFileTime()}.csv",
                 mimeType = "text/csv",
                 content = exporter.toCsv(snapshot),
             )

@@ -22,4 +22,12 @@ class FormattersTest {
         assertNull(parseEditableTime("2026/07/08 23:15", zone))
         assertNull(parseEditableTime("not time", zone))
     }
+
+    @Test
+    fun exportFileTime_usesCompactLocalTimestamp() {
+        val millis = parseEditableTime("2026-07-08 23:15", zone)
+
+        assertNotNull(millis)
+        assertEquals("20260708-231500", millis!!.formatExportFileTime(zone))
+    }
 }
