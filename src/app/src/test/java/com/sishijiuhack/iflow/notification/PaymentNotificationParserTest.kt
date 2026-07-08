@@ -620,6 +620,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_amountWithKuaiSuffix_extractsAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.tencent.mm",
+                title = "微信支付",
+                text = "向便利店付款12块，优惠1.00元",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1200L, result?.amountCents)
+        assertEquals("便利店", result?.merchant)
+    }
+
+    @Test
     fun parse_balanceOnlyAmount_returnsNull() {
         val result = parser.parse(
             PaymentNotificationInput(

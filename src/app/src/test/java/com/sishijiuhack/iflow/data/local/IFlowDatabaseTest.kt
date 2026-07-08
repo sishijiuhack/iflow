@@ -62,6 +62,7 @@ class IFlowDatabaseTest {
         assertTrue(rules.all { it.amountPattern.contains("[,，]") })
         assertTrue(rules.all { it.amountPattern.contains("０-９") })
         assertTrue(rules.all { it.amountPattern.contains("[.．。]") })
+        assertTrue(rules.all { it.amountPattern.contains("块") })
         assertTrue(rules.all { it.directionPattern.contains("扣款") })
         assertTrue(rules.all { it.directionPattern.contains("入账") })
         assertTrue(rules.all { it.directionPattern.contains("存入") })
