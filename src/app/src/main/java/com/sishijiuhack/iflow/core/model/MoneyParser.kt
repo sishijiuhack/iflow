@@ -11,8 +11,9 @@ object MoneyParser {
     fun parseCents(input: String): Long? {
         val normalized = input.trim()
         if (!isPotentialAmount(normalized)) return null
+        if (normalized.none(Char::isDigit)) return null
         val parts = normalized.split(".")
-        val yuan = parts.getOrNull(0)?.toLongOrNull() ?: return null
+        val yuan = parts.getOrNull(0)?.takeIf { it.isNotEmpty() }?.toLongOrNull() ?: 0L
         val cents = parts.getOrNull(1).orEmpty().padEnd(2, '0').take(2).toLongOrNull() ?: 0L
         return yuan * 100 + cents
     }
