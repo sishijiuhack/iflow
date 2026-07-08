@@ -937,6 +937,39 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeStats_shortTermExpenseSummariesIgnoreIncome() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val today = LocalDate.now(zone)
+        repository.ensureDefaultData()
+        val expenseCategoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val incomeCategoryId = database.categoryDao().listByType(TransactionType.Income).first().id
+        val accountId = database.accountDao().listAll().first().id
+        val occurredAt = today.atStartOfDay(zone).toInstant().toEpochMilli()
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 300L,
+                categoryId = expenseCategoryId,
+                accountId = accountId,
+                occurredAt = occurredAt,
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 900L,
+                categoryId = incomeCategoryId,
+                accountId = accountId,
+                occurredAt = occurredAt,
+            ).copy(type = TransactionType.Income),
+        )
+
+        val stats = repository.observeStats(zone, YearMonth.now(zone)).first()
+
+        assertEquals(300L, stats.todayExpenseCents)
+        assertEquals(300L, stats.last7DaysExpenseCents)
+    }
+
+    @Test
     fun observeSummaryAndStats_hidePendingUntilConfirmed() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val month = YearMonth.of(2026, 7)
