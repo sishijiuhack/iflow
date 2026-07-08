@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sishijiuhack.iflow.core.android.appContainer
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
+import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,38 +21,45 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     private val typeFilter = MutableStateFlow(LedgerTypeFilter.All)
     private val dateFilter = MutableStateFlow(LedgerDateFilter.All)
     private val accountFilter = MutableStateFlow<Long?>(null)
+    private val categoryFilter = MutableStateFlow<Long?>(null)
 
     private val filters = combine(
         query,
         typeFilter,
         dateFilter,
         accountFilter,
-    ) { query, typeFilter, dateFilter, accountId ->
+        categoryFilter,
+    ) { query, typeFilter, dateFilter, accountId, categoryId ->
         LedgerFilters(
             query = query,
             typeFilter = typeFilter,
             dateFilter = dateFilter,
             accountId = accountId,
+            categoryId = categoryId,
         )
     }
 
     val uiState: StateFlow<LedgerUiState> = combine(
         repository.observeTransactions(),
         repository.observeAccounts(),
+        repository.observeCategories(),
         filters,
-    ) { transactions, accounts, filters ->
+    ) { transactions, accounts, categories, filters ->
         LedgerUiState(
             query = filters.query,
             typeFilter = filters.typeFilter,
             dateFilter = filters.dateFilter,
             accountFilter = filters.accountId,
+            categoryFilter = filters.categoryId,
             accounts = accounts,
+            categories = categories,
             transactions = filterTransactions(
                 transactions = transactions,
                 query = filters.query,
                 typeFilter = filters.typeFilter,
                 dateFilter = filters.dateFilter,
                 accountId = filters.accountId,
+                categoryId = filters.categoryId,
             ),
         )
     }
@@ -88,6 +96,10 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     fun setAccountFilter(value: Long?) {
         accountFilter.update { value }
     }
+
+    fun setCategoryFilter(value: Long?) {
+        categoryFilter.update { value }
+    }
 }
 
 data class LedgerUiState(
@@ -95,7 +107,9 @@ data class LedgerUiState(
     val typeFilter: LedgerTypeFilter = LedgerTypeFilter.All,
     val dateFilter: LedgerDateFilter = LedgerDateFilter.All,
     val accountFilter: Long? = null,
+    val categoryFilter: Long? = null,
     val accounts: List<AccountEntity> = emptyList(),
+    val categories: List<CategoryEntity> = emptyList(),
     val transactions: List<TransactionListItem> = emptyList(),
 )
 
@@ -104,4 +118,5 @@ private data class LedgerFilters(
     val typeFilter: LedgerTypeFilter,
     val dateFilter: LedgerDateFilter,
     val accountId: Long?,
+    val categoryId: Long?,
 )

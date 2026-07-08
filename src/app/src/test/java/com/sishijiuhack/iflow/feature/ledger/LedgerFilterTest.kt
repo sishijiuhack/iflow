@@ -44,6 +44,18 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_filtersByCategory() {
+        val result = filterTransactions(
+            transactions = sampleTransactions,
+            query = "",
+            typeFilter = LedgerTypeFilter.All,
+            categoryId = 10L,
+        )
+
+        assertEquals(listOf(1L), result.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_filtersToday() {
         val result = filterTransactions(
             transactions = sampleTransactions,
