@@ -483,6 +483,40 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_amountWithFullWidthDigits_extractsAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.eg.android.AlipayGphone",
+                title = "支付宝",
+                text = "你已向星巴克支付￥３２．８０",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(3280L, result?.amountCents)
+        assertEquals("星巴克", result?.merchant)
+    }
+
+    @Test
+    fun parse_amountWithFullWidthDigitsAndThousandsSeparator_extractsFullAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "支出１，２３４．５６元，商户：家电城",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(123456L, result?.amountCents)
+        assertEquals("家电城", result?.merchant)
+    }
+
+    @Test
     fun parse_amountWithRmbPrefix_extractsAmount() {
         val result = parser.parse(
             PaymentNotificationInput(

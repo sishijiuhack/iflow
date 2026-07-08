@@ -83,7 +83,7 @@ class PaymentNotificationParser {
     }
 
     private companion object {
-        private const val amountNumberPattern = """(?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d{1,2})?"""
+        private const val amountNumberPattern = """(?:[\d０-９]{1,3}(?:[,，][\d０-９]{3})+|[\d０-９]+)(?:[.．。][\d０-９]{1,2})?"""
         val amountRegex = Regex(
             """(?:¥|￥|人民币|RMB|CNY|金额)\s*[:：]?\s*($amountNumberPattern)|($amountNumberPattern)\s*元""",
             RegexOption.IGNORE_CASE,
