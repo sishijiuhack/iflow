@@ -710,6 +710,25 @@ class LedgerRepositoryTest {
         assertEquals(100L, stats.dailyExpenses.last().amountCents)
     }
 
+    @Test
+    fun observeSummaryAndStats_hidePendingUntilConfirmed() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val month = YearMonth.of(2026, 7)
+        val postedAt = LocalDate.of(2026, 7, 8).atStartOfDay(zone).toInstant().toEpochMilli()
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-stats-pending").copy(postedAt = postedAt),
+        )
+
+        assertTrue(insertedId != null)
+        assertEquals(0L, repository.observeMonthSummary(zone, month).first().expenseCents)
+        assertEquals(0L, repository.observeStats(zone, month).first().summary.expenseCents)
+
+        repository.confirmPendingTransaction(insertedId!!)
+
+        assertEquals(1200L, repository.observeMonthSummary(zone, month).first().expenseCents)
+        assertEquals(1200L, repository.observeStats(zone, month).first().summary.expenseCents)
+    }
+
     private fun sampleParsed(fingerprint: String): PaymentNotificationParseResult {
         return PaymentNotificationParseResult(
             amountCents = 1200L,
