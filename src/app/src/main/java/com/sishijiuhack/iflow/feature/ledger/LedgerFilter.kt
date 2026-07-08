@@ -1,6 +1,7 @@
 package com.sishijiuhack.iflow.feature.ledger
 
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
+import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.Instant
 import java.time.LocalDate
@@ -46,9 +47,17 @@ fun filterTransactions(
                 transaction.accountName,
                 transaction.merchant.orEmpty(),
                 transaction.note.orEmpty(),
+                MoneyCents(transaction.amountCents).format(),
+                transaction.amountCents.toPlainAmountText(),
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
         matchesType && matchesDate && matchesAccount && matchesCategory && matchesQuery
     }
+}
+
+private fun Long.toPlainAmountText(): String {
+    val yuan = this / 100
+    val cents = (this % 100).toString().padStart(2, '0')
+    return "$yuan.$cents"
 }
 
 private fun LedgerDateFilter.toMillisRange(
