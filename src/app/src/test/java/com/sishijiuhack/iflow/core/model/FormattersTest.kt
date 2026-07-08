@@ -50,8 +50,18 @@ class FormattersTest {
     }
 
     @Test
+    fun editableTime_acceptsSlashDateSeparators() {
+        val asciiSlash = parseEditableTime("2026/07/08 23:15", zone)
+        val fullWidthSlash = parseEditableTime("２０２６／０７／０８ ２３：１５", zone)
+
+        assertNotNull(asciiSlash)
+        assertNotNull(fullWidthSlash)
+        assertEquals("2026-07-08 23:15", asciiSlash!!.formatEditableTime(zone))
+        assertEquals("2026-07-08 23:15", fullWidthSlash!!.formatEditableTime(zone))
+    }
+
+    @Test
     fun editableTime_rejectsInvalidInput() {
-        assertNull(parseEditableTime("2026/07/08 23:15", zone))
         assertNull(parseEditableTime("not time", zone))
     }
 

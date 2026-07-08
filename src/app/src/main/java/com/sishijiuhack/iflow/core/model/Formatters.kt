@@ -35,6 +35,7 @@ private fun String.normalizeEditableTimeInput(): String {
         when (char) {
             in '０'..'９' -> '0' + (char - '０')
             '－', '—', 'ー' -> '-'
+            '/', '／' -> '-'
             '：' -> ':'
             '　' -> ' '
             '年', '月' -> '-'
