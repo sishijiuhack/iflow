@@ -377,6 +377,9 @@ class LedgerRepository(
         if (parsed.type == TransactionType.Income && text.contains("退款")) {
             categories.firstOrNull { it.name.contains("退款") }?.let { return it.id }
         }
+        if (parsed.type == TransactionType.Expense && text.contains("转账")) {
+            categories.firstOrNull { it.name.contains("转账") }?.let { return it.id }
+        }
         return categories.firstOrNull()?.id
     }
 

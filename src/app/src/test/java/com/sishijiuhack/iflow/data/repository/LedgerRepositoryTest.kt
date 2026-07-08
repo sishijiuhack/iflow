@@ -182,6 +182,24 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun savePendingNotificationTransaction_matchesTransferExpenseCategory() = runTest {
+        val insertedId = repository.savePendingNotificationTransaction(
+            sampleParsed("fingerprint-transfer-category").copy(
+                sourceApp = "微信",
+                packageName = "com.tencent.mm",
+                rawTitle = "微信支付",
+                rawText = "向朋友转账12.00元",
+            ),
+        )
+
+        assertTrue(insertedId != null)
+        val saved = database.transactionDao().getById(insertedId!!)
+        val category = saved?.categoryId?.let { database.categoryDao().getById(it) }
+
+        assertEquals("转账", category?.name)
+    }
+
+    @Test
     fun setNotificationRuleEnabled_updatesRuleState() = runTest {
         repository.ensureDefaultData()
         val rule = database.notificationRuleDao().listAll().first { it.packageName == "com.tencent.mm" }
