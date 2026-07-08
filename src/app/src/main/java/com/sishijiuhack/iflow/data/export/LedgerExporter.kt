@@ -1,6 +1,7 @@
 package com.sishijiuhack.iflow.data.export
 
 import com.sishijiuhack.iflow.data.repository.LedgerExportSnapshot
+import com.sishijiuhack.iflow.domain.model.TransactionStatus
 
 class LedgerExporter {
     fun toJson(snapshot: LedgerExportSnapshot): String {
@@ -88,7 +89,9 @@ class LedgerExporter {
             appendLine("id,type,amountCents,category,account,merchant,note,occurredAt,source,status,rawNotificationId,createdAt,updatedAt")
             val categoryMap = snapshot.categories.associateBy { it.id }
             val accountMap = snapshot.accounts.associateBy { it.id }
-            snapshot.transactions.forEach { transaction ->
+            snapshot.transactions
+                .filter { it.status == TransactionStatus.Confirmed }
+                .forEach { transaction ->
                 appendLine(
                     listOf(
                         transaction.id.toString(),

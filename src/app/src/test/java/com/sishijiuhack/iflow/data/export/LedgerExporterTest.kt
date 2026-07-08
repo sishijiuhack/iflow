@@ -10,6 +10,7 @@ import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionSource
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -67,6 +68,31 @@ class LedgerExporterTest {
 
         assertTrue(csv.contains("'=SUM(A1:A2)"))
         assertTrue(csv.contains("'@cmd"))
+    }
+
+    @Test
+    fun toCsv_exportsConfirmedTransactionsOnly() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(
+                        id = 1L,
+                        merchant = "Confirmed Store",
+                        status = TransactionStatus.Confirmed,
+                    ),
+                    it.transactions.first().copy(
+                        id = 2L,
+                        merchant = "Pending Store",
+                        status = TransactionStatus.Pending,
+                    ),
+                ),
+            )
+        }
+
+        val csv = exporter.toCsv(snapshot)
+
+        assertTrue(csv.contains("Confirmed Store"))
+        assertFalse(csv.contains("Pending Store"))
     }
 
     @Test
