@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
@@ -93,7 +94,10 @@ fun IFlowApp() {
             ModalBottomSheet(
                 onDismissRequest = { showNewTransactionSheet = false },
                 sheetState = newTransactionSheetState,
-                modifier = Modifier.fillMaxHeight(0.88f),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(top = 32.dp),
+                contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             ) {
                 key(newTransactionSheetKey) {
                     TransactionFormRoute(
