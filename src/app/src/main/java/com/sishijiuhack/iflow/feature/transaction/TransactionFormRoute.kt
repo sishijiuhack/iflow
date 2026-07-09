@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -18,10 +20,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -41,8 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -125,103 +125,36 @@ fun TransactionFormRoute(
             onClose = onClose,
         )
 
-        OutlinedTextField(
-            value = uiState.form.amountInput,
-            onValueChange = viewModel::setAmount,
-            label = { Text("金额") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            isError = uiState.amountError != null,
-            supportingText = uiState.amountError?.let { error ->
-                { Text(error) }
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
         CategoryGrid(
             categories = uiState.categories,
             selectedCategoryId = uiState.form.categoryId,
             onCategoryClick = viewModel::setCategory,
         )
 
-        Text("账户", style = MaterialTheme.typography.titleSmall)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            uiState.accounts.forEach { account ->
-                FilterChip(
-                    selected = uiState.form.accountId == account.id,
-                    onClick = { viewModel.setAccount(account.id) },
-                    label = { Text(account.name) },
-                )
-            }
-        }
-
-        OutlinedTextField(
-            value = uiState.form.merchant,
-            onValueChange = viewModel::setMerchant,
-            label = { Text("商户") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+        TransactionActionChips(
+            accounts = uiState.accounts.map { it.name },
         )
 
-        OutlinedTextField(
-            value = uiState.form.note,
-            onValueChange = viewModel::setNote,
-            label = { Text("备注") },
-            modifier = Modifier.fillMaxWidth(),
+        AmountInputCard(
+            amountInput = uiState.form.amountInput,
+            amountError = uiState.amountError,
+            note = uiState.form.note,
+            onNoteChange = viewModel::setNote,
+            occurredAtInput = uiState.form.occurredAtInput,
+            timeError = uiState.timeError,
+            onDateClick = { showDatePicker = true },
+            onTimeClick = { showTimePicker = true },
         )
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedTextField(
-                value = uiState.form.occurredAtInput,
-                onValueChange = viewModel::setOccurredAtInput,
-                label = { Text("时间") },
-                isError = uiState.timeError != null,
-                supportingText = {
-                    Text(uiState.timeError ?: "格式：yyyy-MM-dd HH:mm")
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TextButton(onClick = { showDatePicker = true }) {
-                    Text("日期")
-                }
-                TextButton(onClick = { showTimePicker = true }) {
-                    Text("时间")
-                }
-                TextButton(onClick = viewModel::setOccurredAtNow) {
-                    Text("现在")
-                }
-            }
-        }
+        NumberKeyboard(
+            amountInput = uiState.form.amountInput,
+            onAmountChange = viewModel::setAmount,
+            onDone = viewModel::save,
+            canSave = uiState.canSave,
+            type = uiState.form.type,
+        )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Button(
-                onClick = viewModel::save,
-                enabled = uiState.canSave,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (uiState.form.type == TransactionType.Income) {
-                        MaterialTheme.colorScheme.secondary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("完成")
-            }
-        }
+        Spacer(modifier = Modifier.height(96.dp))
     }
 }
 
@@ -314,6 +247,207 @@ private fun TypeSegment(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
         )
     }
+}
+
+@Composable
+private fun TransactionActionChips(
+    accounts: List<String>,
+) {
+    val accountLabel = accounts.firstOrNull()?.let { "选择账户" } ?: "选择账户"
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        ActionPill(text = accountLabel, iconText = "💳")
+        ActionPill(text = "报销", iconText = "○")
+        ActionPill(text = "优惠", iconText = "🎁")
+        ActionPill(text = "图片", icon = Icons.Outlined.Image)
+        ActionPill(text = "标签", icon = Icons.AutoMirrored.Outlined.Label)
+    }
+}
+
+@Composable
+private fun ActionPill(
+    text: String,
+    iconText: String? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            if (iconText != null) {
+                Text(text = iconText, style = MaterialTheme.typography.bodyMedium)
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AmountInputCard(
+    amountInput: String,
+    amountError: String?,
+    note: String,
+    onNoteChange: (String) -> Unit,
+    occurredAtInput: String,
+    timeError: String?,
+    onDateClick: () -> Unit,
+    onTimeClick: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "¥" + (amountInput.ifBlank { "0.00" }),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+            )
+            if (amountError != null) {
+                Text(
+                    text = amountError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Surface(
+                    color = Color(0xFFF8F9FA),
+                    shape = RoundedCornerShape(18.dp),
+                    onClick = onDateClick,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(occurredAtInput.takeLast(5))
+                    }
+                }
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = onNoteChange,
+                    placeholder = { Text("点击填写备注") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = onTimeClick) {
+                    Text("时间")
+                }
+            }
+            if (timeError != null) {
+                Text(
+                    text = timeError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NumberKeyboard(
+    amountInput: String,
+    onAmountChange: (String) -> Unit,
+    onDone: () -> Unit,
+    canSave: Boolean,
+    type: TransactionType,
+) {
+    val rows = listOf(
+        listOf("1", "2", "3", "⌫"),
+        listOf("4", "5", "6", "C"),
+        listOf("7", "8", "9", "÷"),
+        listOf(".", "0", "保存再记", "完成"),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        rows.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                row.forEach { key ->
+                    val isDone = key == "完成"
+                    Surface(
+                        color = when {
+                            isDone && type == TransactionType.Income -> MaterialTheme.colorScheme.secondary
+                            isDone -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.surface
+                        },
+                        shape = RoundedCornerShape(18.dp),
+                        onClick = {
+                            when (key) {
+                                "完成" -> if (canSave) onDone()
+                                "保存再记" -> if (canSave) onDone()
+                                "⌫" -> onAmountChange(amountInput.dropLast(1))
+                                "C" -> onAmountChange("")
+                                "÷" -> Unit
+                                else -> appendAmountKey(amountInput, key, onAmountChange)
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(58.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = key,
+                                color = if (isDone) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = if (isDone) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun appendAmountKey(
+    current: String,
+    key: String,
+    onAmountChange: (String) -> Unit,
+) {
+    if (key == "." && current.contains(".")) return
+    val next = if (current == "0" && key != ".") key else current + key
+    onAmountChange(next)
 }
 
 @Composable

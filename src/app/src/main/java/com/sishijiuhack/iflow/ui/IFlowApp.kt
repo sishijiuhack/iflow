@@ -93,7 +93,7 @@ fun IFlowApp() {
             ModalBottomSheet(
                 onDismissRequest = { showNewTransactionSheet = false },
                 sheetState = newTransactionSheetState,
-                modifier = Modifier.fillMaxHeight(0.7f),
+                modifier = Modifier.fillMaxHeight(0.88f),
             ) {
                 key(newTransactionSheetKey) {
                     TransactionFormRoute(
