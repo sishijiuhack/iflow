@@ -10,10 +10,10 @@ import com.sishijiuhack.iflow.domain.model.TransactionType
 object DefaultLedgerData {
     const val DefaultAccountId = 1L
     const val DefaultAmountPattern =
-        """(?:¥|￥|人民币|(?i:RMB|CNY)|金额)\s*[:：]?\s*((?:[\d０-９]{1,3}(?:[,，][\d０-９]{3})+|[\d０-９]+)(?:[.．。][\d０-９]{1,2})?)|((?:[\d０-９]{1,3}(?:[,，][\d０-９]{3})+|[\d０-９]+)(?:[.．。][\d０-９]{1,2})?)\s*(?:元|块)"""
+        """(?:¥|￥|人民币|(?i:RMB|CNY)|金额)[\s\u00A0\u202F]*[:：]?[\s\u00A0\u202F]*((?:[\d０-９]{1,3}(?:[,，][\d０-９]{3})+|[\d０-９]+)(?:[.．。][\d０-９]{1,2})?)|((?:[\d０-９]{1,3}(?:[,，][\d０-９]{3})+|[\d０-９]+)(?:[.．。][\d０-９]{1,2})?)[\s\u00A0\u202F]*(?:元|块)"""
     const val DefaultDirectionPattern = "收款|收入|到账|退款|转入|入账|存入|工资|贷记|付款|扣款|支出|消费|支付|转出|借记"
     const val DefaultMerchantPattern =
-        """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|对方户名|收款户名|收款账户|收款人|收款方|对方|付款方|付款账户|付款户名|付款人)[:：]\s*([^，,。]+)"""
+        """(?:向|给|在)([^，,。]+?)(?:付款|支付|消费|转账)|(?:商户名称|交易商户|商户名|商户|交易对手|交易方|对手户名|对方户名|收款户名|收款账户|收款人|收款方|对方|付款方|付款账户|付款户名|付款人)[:：][\s\u00A0\u202F]*([^，,。]+)"""
 
     val categories = listOf(
         CategoryEntity(id = 1L, name = "餐饮", type = TransactionType.Expense, icon = "restaurant", sortOrder = 10, isDefault = true),

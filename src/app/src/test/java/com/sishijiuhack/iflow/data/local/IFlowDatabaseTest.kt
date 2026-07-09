@@ -59,10 +59,14 @@ class IFlowDatabaseTest {
         assertTrue(rules.all { it.amountPattern.contains("CNY") })
         assertTrue(rules.all { it.amountPattern.contains("(?i:RMB|CNY)") })
         assertTrue(rules.all { it.amountPattern.contains("[:：]?") })
+        assertTrue(rules.all { it.amountPattern.contains("\\u00A0") })
+        assertTrue(rules.all { it.amountPattern.contains("\\u202F") })
         assertTrue(rules.all { it.amountPattern.contains("[,，]") })
         assertTrue(rules.all { it.amountPattern.contains("０-９") })
         assertTrue(rules.all { it.amountPattern.contains("[.．。]") })
         assertTrue(rules.all { it.amountPattern.contains("块") })
+        assertTrue(Regex(rules.first().amountPattern).containsMatchIn("人民币\u00A012.30元"))
+        assertTrue(Regex(rules.first().amountPattern).containsMatchIn("12.30\u202F元"))
         assertTrue(rules.all { it.directionPattern.contains("扣款") })
         assertTrue(rules.all { it.directionPattern.contains("入账") })
         assertTrue(rules.all { it.directionPattern.contains("存入") })
@@ -80,6 +84,7 @@ class IFlowDatabaseTest {
         assertTrue(rules.all { it.merchantPattern?.contains("付款账户") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("付款户名") == true })
         assertTrue(rules.all { it.merchantPattern?.contains("付款人") == true })
+        assertTrue(Regex(rules.first().merchantPattern.orEmpty()).containsMatchIn("商户：\u00A0便利店"))
     }
 
     @Test
