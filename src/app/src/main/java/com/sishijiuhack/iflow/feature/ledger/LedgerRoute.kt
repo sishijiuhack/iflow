@@ -56,6 +56,11 @@ fun LedgerRoute(
             style = MaterialTheme.typography.headlineSmall,
         )
         MonthSummaryCard(summary = uiState.monthSummary)
+        MonthSwitcher(
+            monthLabel = uiState.selectedMonth.toLedgerMonthLabel(),
+            onPrevious = viewModel::showPreviousMonth,
+            onNext = viewModel::showNextMonth,
+        )
         Button(
             onClick = onAddTransaction,
             modifier = Modifier.fillMaxWidth(),
@@ -160,6 +165,31 @@ fun LedgerRoute(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun MonthSwitcher(
+    monthLabel: String,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        TextButton(onClick = onPrevious) {
+            Text("<")
+        }
+        Text(
+            text = monthLabel,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        TextButton(onClick = onNext) {
+            Text(">")
         }
     }
 }
