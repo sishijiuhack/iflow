@@ -51,8 +51,8 @@ fun AssetsRoute(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         AssetsHeader(
             onOpenSettings = onOpenSettings,
@@ -77,7 +77,7 @@ fun AssetsRoute(
         ) {
             Text(
                 text = "账户",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             RoundIconButton(
@@ -114,10 +114,10 @@ private fun AssetsHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = "资产",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
@@ -126,7 +126,7 @@ private fun AssetsHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             RoundIconButton(
                 icon = if (hiddenAmounts) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                 contentDescription = "隐藏金额",
@@ -155,8 +155,8 @@ private fun NetAssetCard(
         shadowElevation = 1.dp,
     ) {
         Column(
-            modifier = Modifier.padding(22.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 text = "净资产",
@@ -165,13 +165,13 @@ private fun NetAssetCard(
             )
             Text(
                 text = formatAssetAmount(netAssetsCents, hiddenAmounts),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 AssetMetric(
                     label = "总资产",
@@ -198,7 +198,7 @@ private fun LoanSummaryRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         LoanMetricCard(
             label = "总借入",
@@ -226,8 +226,8 @@ private fun LoanMetricCard(
         shadowElevation = 1.dp,
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = label,
@@ -236,7 +236,7 @@ private fun LoanMetricCard(
             )
             Text(
                 text = amount,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
         }
@@ -274,7 +274,7 @@ private fun AccountGroup(
     accounts: List<AccountBalanceItem>,
     hiddenAmounts: Boolean,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
@@ -304,23 +304,23 @@ private fun AccountBalanceRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Surface(
                     color = Color(0xFFF1F2F4),
                     shape = CircleShape,
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(38.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = account.accountType.iconText(),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -362,7 +362,7 @@ private fun RoundIconButton(
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
-        modifier = Modifier.size(44.dp),
+        modifier = Modifier.size(40.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
@@ -383,7 +383,7 @@ private fun EmptyAccountState() {
     ) {
         Text(
             text = "暂无账户",
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(18.dp),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

@@ -59,8 +59,8 @@ fun LedgerRoute(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         LedgerHeader()
         OutlinedTextField(
@@ -154,7 +154,7 @@ fun LedgerRoute(
                 }
             }
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 dateGroups.forEach { group ->
                     item(key = "date-${group.label}") {
@@ -180,7 +180,7 @@ fun LedgerRoute(
 
 @Composable
 private fun LedgerHeader() {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -189,7 +189,7 @@ private fun LedgerHeader() {
                 icon = Icons.AutoMirrored.Outlined.CompareArrows,
                 contentDescription = "切换账本",
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CircleIconButton(
                     icon = Icons.Outlined.MoreHoriz,
                     contentDescription = "更多",
@@ -203,7 +203,7 @@ private fun LedgerHeader() {
         }
         Text(
             text = "默认账本",
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -217,7 +217,7 @@ private fun CircleIconButton(
 ) {
     Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(42.dp)
             .background(
                 color = MaterialTheme.colorScheme.surface,
                 shape = CircleShape,
@@ -228,7 +228,7 @@ private fun CircleIconButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = tint,
-            modifier = Modifier.size(30.dp),
+            modifier = Modifier.size(22.dp),
         )
     }
 }
@@ -245,12 +245,12 @@ private fun MonthSwitcher(
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             Text(
                 text = monthLabel,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
             TextButton(onClick = onPrevious) {
@@ -263,13 +263,13 @@ private fun MonthSwitcher(
         Text(
             text = "收支日历",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .background(
                     color = Color(0xFFF0F0F2),
                     shape = RoundedCornerShape(20.dp),
                 )
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 7.dp),
         )
     }
 }
@@ -279,13 +279,13 @@ private fun EmptyLedgerMessage() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 72.dp),
+            .padding(top = 52.dp),
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
     ) {
         Text(
             text = "本月暂无数据",
             color = Color(0xFFC7C7CC),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
         )
     }
 }
@@ -319,24 +319,24 @@ private fun MonthSummaryCard(summary: MonthSummary) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 text = "总支出 ⇄",
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = MoneyCents(summary.expenseCents).format(),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.displayMedium,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SummaryMetric(
                     label = "总收入",

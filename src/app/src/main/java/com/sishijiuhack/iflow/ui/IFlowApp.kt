@@ -168,16 +168,16 @@ private fun IFlowBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(36.dp),
+            shape = RoundedCornerShape(31.dp),
             shadowElevation = 4.dp,
             modifier = Modifier
                 .weight(1f)
-                .height(72.dp),
+                .height(62.dp),
         ) {
             Row(
                 modifier = Modifier.padding(6.dp),
@@ -189,10 +189,10 @@ private fun IFlowBottomBar(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .height(60.dp)
+                            .height(50.dp)
                             .background(
                                 color = if (selected) Color(0xFFF0F0F2) else Color.Transparent,
-                                shape = RoundedCornerShape(30.dp),
+                                shape = RoundedCornerShape(25.dp),
                             )
                             .clickable { onDestinationClick(destination) },
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -207,7 +207,7 @@ private fun IFlowBottomBar(
                             imageVector = destination.icon,
                             contentDescription = destination.label,
                             tint = tint,
-                            modifier = Modifier.size(26.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                         Text(
                             text = destination.label,
@@ -219,13 +219,13 @@ private fun IFlowBottomBar(
                 }
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = CircleShape,
             shadowElevation = 4.dp,
             modifier = Modifier
-                .size(72.dp)
+                .size(60.dp)
                 .clickable(onClick = onNewTransactionClick),
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -233,7 +233,7 @@ private fun IFlowBottomBar(
                     imageVector = Icons.Outlined.Add,
                     contentDescription = "新建",
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(30.dp),
                 )
             }
         }

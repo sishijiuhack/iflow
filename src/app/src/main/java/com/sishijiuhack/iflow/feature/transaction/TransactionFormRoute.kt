@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -122,9 +121,8 @@ fun TransactionFormRoute(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         TransactionSheetHeader(
             isEdit = uiState.isEdit,
@@ -140,41 +138,51 @@ fun TransactionFormRoute(
             onClose = onClose,
         )
 
-        if (selectedMode == EntryMode.Transfer) {
-            TransferAccountCards(accounts = uiState.accounts)
-        } else {
-            CategoryGrid(
-                categories = uiState.categories,
-                selectedCategoryId = uiState.form.categoryId,
-                onCategoryClick = viewModel::setCategory,
-            )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (selectedMode == EntryMode.Transfer) {
+                TransferAccountCards(accounts = uiState.accounts)
+            } else {
+                CategoryGrid(
+                    categories = uiState.categories,
+                    selectedCategoryId = uiState.form.categoryId,
+                    onCategoryClick = viewModel::setCategory,
+                )
+            }
         }
 
-        TransactionActionChips(
-            mode = selectedMode,
-        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            TransactionActionChips(
+                mode = selectedMode,
+            )
 
-        AmountInputCard(
-            amountInput = uiState.form.amountInput,
-            amountError = uiState.amountError,
-            note = uiState.form.note,
-            onNoteChange = viewModel::setNote,
-            occurredAtInput = uiState.form.occurredAtInput,
-            timeError = uiState.timeError,
-            onDateClick = { showDatePicker = true },
-            onTimeClick = { showTimePicker = true },
-            mode = selectedMode,
-        )
+            AmountInputCard(
+                amountInput = uiState.form.amountInput,
+                amountError = uiState.amountError,
+                note = uiState.form.note,
+                onNoteChange = viewModel::setNote,
+                occurredAtInput = uiState.form.occurredAtInput,
+                timeError = uiState.timeError,
+                onDateClick = { showDatePicker = true },
+                onTimeClick = { showTimePicker = true },
+                mode = selectedMode,
+            )
 
-        NumberKeyboard(
-            amountInput = uiState.form.amountInput,
-            onAmountChange = viewModel::setAmount,
-            onDone = viewModel::save,
-            canSave = uiState.canSave && selectedMode != EntryMode.Transfer,
-            mode = selectedMode,
-        )
-
-        Spacer(modifier = Modifier.height(96.dp))
+            NumberKeyboard(
+                amountInput = uiState.form.amountInput,
+                onAmountChange = viewModel::setAmount,
+                onDone = viewModel::save,
+                canSave = uiState.canSave && selectedMode != EntryMode.Transfer,
+                mode = selectedMode,
+            )
+        }
     }
 }
 
@@ -192,7 +200,7 @@ private fun TransactionSheetHeader(
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(44.dp)
                 .background(MaterialTheme.colorScheme.surface, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
@@ -201,7 +209,7 @@ private fun TransactionSheetHeader(
                     imageVector = Icons.Outlined.Close,
                     contentDescription = "关闭",
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
         }
@@ -261,9 +269,9 @@ private fun TypeSegment(
                 selected -> MaterialTheme.colorScheme.onSurface
                 else -> MaterialTheme.colorScheme.onSurfaceVariant
             },
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
         )
     }
 }
@@ -297,7 +305,7 @@ private fun TransactionActionChips(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         chips.forEach { chip ->
             ActionPill(text = chip.text, iconText = chip.iconText, icon = chip.icon)
@@ -316,8 +324,8 @@ private fun ActionPill(
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
@@ -325,7 +333,7 @@ private fun ActionPill(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
             }
             if (iconText != null) {
@@ -333,7 +341,7 @@ private fun ActionPill(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
             )
         }
@@ -358,13 +366,13 @@ private fun AmountInputCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "¥" + (amountInput.ifBlank { "0.00" }),
                 color = mode.tintColor(),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
             if (amountError != null) {
@@ -376,7 +384,7 @@ private fun AmountInputCard(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Surface(
@@ -385,14 +393,14 @@ private fun AmountInputCard(
                     onClick = onDateClick,
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Schedule,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(16.dp),
                         )
                         Text(occurredAtInput.takeLast(5))
                     }
@@ -433,11 +441,11 @@ private fun NumberKeyboard(
         listOf("7", "8", "9", "÷"),
         listOf(".", "0", "保存再记", "完成"),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         rows.forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 row.forEach { key ->
                     val isDone = key == "完成"
@@ -459,13 +467,13 @@ private fun NumberKeyboard(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(58.dp),
+                            .height(46.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = key,
                                 color = if (isDone) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = if (isDone) FontWeight.SemiBold else FontWeight.Normal,
                                 textAlign = TextAlign.Center,
                             )
@@ -483,7 +491,7 @@ private fun TransferAccountCards(
 ) {
     val fromAccount = accounts.firstOrNull()?.name ?: "选择转出账户"
     val toAccount = accounts.drop(1).firstOrNull()?.name ?: "选择转入账户"
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TransferAccountCard(
             label = "转出账户",
             accountName = fromAccount,
@@ -515,20 +523,20 @@ private fun TransferAccountCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(18.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(40.dp)
                     .background(Color(0xFFEAF3FF), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = iconText,
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -540,7 +548,7 @@ private fun TransferAccountCard(
                 )
                 Text(
                     text = accountName,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -592,11 +600,11 @@ private fun CategoryGrid(
     selectedCategoryId: Long?,
     onCategoryClick: (Long) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         categories.chunked(5).forEach { rowCategories ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 rowCategories.forEach { category ->
                     CategoryTile(
@@ -624,11 +632,11 @@ private fun CategoryTile(
     Column(
         modifier = modifier.clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(38.dp)
                 .background(
                     color = if (selected) MaterialTheme.colorScheme.error else Color(0xFFF0F0F2),
                     shape = CircleShape,
@@ -637,12 +645,12 @@ private fun CategoryTile(
         ) {
             Text(
                 text = category.icon.toCategoryEmoji(),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleMedium,
             )
         }
         Text(
             text = category.name,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             maxLines = 1,
