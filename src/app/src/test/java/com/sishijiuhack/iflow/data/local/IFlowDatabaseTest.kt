@@ -39,6 +39,11 @@ class IFlowDatabaseTest {
         DefaultDataSeeder(database).seedIfNeeded(nowMillis = 1000L)
 
         assertEquals(DefaultLedgerData.categories.size, database.categoryDao().count())
+        assertTrue(database.categoryDao().listByType(TransactionType.Expense).size >= 15)
+        assertTrue(database.categoryDao().listByType(TransactionType.Income).size >= 8)
+        assertTrue(database.categoryDao().listByType(TransactionType.Expense).any { it.name == "旅行" && it.icon == "flight" })
+        assertTrue(database.categoryDao().listByType(TransactionType.Expense).any { it.name == "数码" && it.icon == "devices" })
+        assertTrue(database.categoryDao().listByType(TransactionType.Income).any { it.name == "红包" && it.icon == "card_giftcard" })
         assertEquals(DefaultLedgerData.accounts.size, database.accountDao().count())
         assertEquals(DefaultLedgerData.notificationRules.size, database.notificationRuleDao().count())
         assertTrue(database.notificationRuleDao().listEnabled().any { it.appName == "微信" })
