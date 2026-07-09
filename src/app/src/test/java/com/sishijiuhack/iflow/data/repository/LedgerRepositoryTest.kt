@@ -985,6 +985,7 @@ class LedgerRepositoryTest {
 
         assertEquals(300L, stats.todayExpenseCents)
         assertEquals(300L, stats.last7DaysExpenseCents)
+        assertEquals(300L, stats.dailyExpenses.last().amountCents)
     }
 
     @Test
