@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -49,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.toCategoryEmoji
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
+import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.Instant
 import java.time.ZoneId
@@ -69,6 +71,7 @@ fun TransactionFormRoute(
     }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showAccountPicker by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
 
     LaunchedEffect(uiState.saveFinished) {
@@ -119,6 +122,18 @@ fun TransactionFormRoute(
         }
     }
 
+    if (showAccountPicker) {
+        AccountPickerDialog(
+            accounts = uiState.accounts,
+            selectedAccountId = uiState.form.accountId,
+            onDismiss = { showAccountPicker = false },
+            onAccountSelected = { accountId ->
+                viewModel.setAccount(accountId)
+                showAccountPicker = false
+            },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -163,6 +178,8 @@ fun TransactionFormRoute(
         ) {
             TransactionActionChips(
                 mode = selectedMode,
+                selectedAccountName = uiState.accounts.firstOrNull { it.id == uiState.form.accountId }?.name,
+                onAccountClick = { showAccountPicker = true },
             )
 
             AmountInputCard(
@@ -283,17 +300,19 @@ private fun TypeSegment(
 @Composable
 private fun TransactionActionChips(
     mode: EntryMode,
+    selectedAccountName: String?,
+    onAccountClick: () -> Unit,
 ) {
     val chips = when (mode) {
         EntryMode.Expense -> listOf(
-            ActionChipSpec("选择账户", "💳", null),
+            ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
             ActionChipSpec("报销", "○", null),
             ActionChipSpec("优惠", "🎁", null),
             ActionChipSpec("图片", null, Icons.Outlined.Image),
             ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
         )
         EntryMode.Income -> listOf(
-            ActionChipSpec("选择账户", "💳", null),
+            ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
             ActionChipSpec("图片", null, Icons.Outlined.Image),
             ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
             ActionChipSpec("标记", "★", null),
@@ -312,7 +331,7 @@ private fun TransactionActionChips(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         chips.forEach { chip ->
-            ActionPill(text = chip.text, iconText = chip.iconText, icon = chip.icon)
+            ActionPill(text = chip.text, iconText = chip.iconText, icon = chip.icon, onClick = chip.onClick)
         }
     }
 }
@@ -322,13 +341,16 @@ private fun ActionPill(
     text: String,
     iconText: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            modifier = Modifier
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(horizontal = 10.dp, vertical = 7.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -350,6 +372,70 @@ private fun ActionPill(
             )
         }
     }
+}
+
+@Composable
+private fun AccountPickerDialog(
+    accounts: List<AccountEntity>,
+    selectedAccountId: Long?,
+    onDismiss: () -> Unit,
+    onAccountSelected: (Long) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "选择账户",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                accounts.forEach { account ->
+                    val selected = account.id == selectedAccountId
+                    Surface(
+                        color = if (selected) Color(0xFFEAF3FF) else Color(0xFFF8F9FA),
+                        shape = RoundedCornerShape(18.dp),
+                        onClick = { onAccountSelected(account.id) },
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(text = accountIcon(account), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    text = account.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            if (selected) {
+                                Text(
+                                    text = "当前",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        },
+    )
 }
 
 @Composable
@@ -619,7 +705,18 @@ private data class ActionChipSpec(
     val text: String,
     val iconText: String?,
     val icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    val onClick: (() -> Unit)? = null,
 )
+
+private fun accountIcon(account: AccountEntity): String {
+    return when (account.type) {
+        AccountType.Cash -> "💵"
+        AccountType.Bank -> "💳"
+        AccountType.Wechat -> "💬"
+        AccountType.Alipay -> "🔵"
+        AccountType.Other -> "💼"
+    }
+}
 
 private enum class EntryMode {
     Expense,
