@@ -551,6 +551,23 @@ class PaymentNotificationParserTest {
     }
 
     @Test
+    fun parse_amountWithCopiedSpacingAfterCurrencyPrefix_extractsAmount() {
+        val result = parser.parse(
+            PaymentNotificationInput(
+                packageName = "com.example.bank",
+                title = "交易提醒",
+                text = "尾号1234支出人民币\u00A016.20元，商户：地铁",
+                postedAt = 100_000L,
+            ),
+        )
+
+        assertNotNull(result)
+        assertEquals(TransactionType.Expense, result?.type)
+        assertEquals(1620L, result?.amountCents)
+        assertEquals("地铁", result?.merchant)
+    }
+
+    @Test
     fun parse_amountWithCnyPrefix_extractsAmount() {
         val result = parser.parse(
             PaymentNotificationInput(
