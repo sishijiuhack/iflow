@@ -1005,6 +1005,47 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeMonthSummary_sumsIncomeExpenseAndBalanceForSelectedMonth() = runTest {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val month = YearMonth.of(2026, 7)
+        repository.ensureDefaultData()
+        val expenseCategoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val incomeCategoryId = database.categoryDao().listByType(TransactionType.Income).first().id
+        val accountId = database.accountDao().listAll().first().id
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 1200L,
+                categoryId = expenseCategoryId,
+                accountId = accountId,
+                occurredAt = LocalDate.of(2026, 7, 8).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 5000L,
+                categoryId = incomeCategoryId,
+                accountId = accountId,
+                occurredAt = LocalDate.of(2026, 7, 9).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ).copy(type = TransactionType.Income),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 900L,
+                categoryId = expenseCategoryId,
+                accountId = accountId,
+                occurredAt = LocalDate.of(2026, 8, 1).atStartOfDay(zone).toInstant().toEpochMilli(),
+            ),
+        )
+
+        val summary = repository.observeMonthSummary(zone, month).first()
+
+        assertEquals(5000L, summary.incomeCents)
+        assertEquals(1200L, summary.expenseCents)
+        assertEquals(3800L, summary.balanceCents)
+    }
+
+    @Test
     fun observeStats_shortTermExpenseSummariesIgnoreIncome() = runTest {
         val zone = ZoneId.of("Asia/Shanghai")
         val today = LocalDate.now(zone)

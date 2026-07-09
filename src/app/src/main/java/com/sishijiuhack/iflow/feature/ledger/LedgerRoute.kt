@@ -1,6 +1,7 @@
 package com.sishijiuhack.iflow.feature.ledger
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
@@ -27,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.core.model.formatLedgerTime
+import com.sishijiuhack.iflow.data.repository.MonthSummary
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import com.sishijiuhack.iflow.domain.model.TransactionType
 
@@ -51,6 +55,7 @@ fun LedgerRoute(
             text = "流水",
             style = MaterialTheme.typography.headlineSmall,
         )
+        MonthSummaryCard(summary = uiState.monthSummary)
         Button(
             onClick = onAddTransaction,
             modifier = Modifier.fillMaxWidth(),
@@ -160,6 +165,73 @@ fun LedgerRoute(
 }
 
 @Composable
+private fun MonthSummaryCard(summary: MonthSummary) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "本月概览",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                SummaryMetric(
+                    label = "收入",
+                    amountCents = summary.incomeCents,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.weight(1f),
+                )
+                SummaryMetric(
+                    label = "支出",
+                    amountCents = summary.expenseCents,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f),
+                )
+                SummaryMetric(
+                    label = "结余",
+                    amountCents = summary.balanceCents,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SummaryMetric(
+    label: String,
+    amountCents: Long,
+    color: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                text = MoneyCents(amountCents).format(),
+                color = color,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+
+@Composable
 private fun TransactionRow(
     transaction: TransactionListItem,
     onClick: () -> Unit,
@@ -191,7 +263,7 @@ private fun TransactionRow(
             }
             val sign = if (transaction.type == TransactionType.Income) "+" else "-"
             val amountColor = if (transaction.type == TransactionType.Income) {
-                MaterialTheme.colorScheme.tertiary
+                MaterialTheme.colorScheme.secondary
             } else {
                 MaterialTheme.colorScheme.error
             }
