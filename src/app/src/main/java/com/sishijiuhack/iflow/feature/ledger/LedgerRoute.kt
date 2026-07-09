@@ -1,6 +1,7 @@
 package com.sishijiuhack.iflow.feature.ledger
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,14 +9,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.CompareArrows
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,99 +62,97 @@ fun LedgerRoute(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "流水",
-            style = MaterialTheme.typography.headlineSmall,
+        LedgerHeader()
+        OutlinedTextField(
+            value = uiState.query,
+            onValueChange = viewModel::setQuery,
+            placeholder = { Text("输入关键词") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = null,
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier.fillMaxWidth(),
         )
-        MonthSummaryCard(summary = uiState.monthSummary)
         MonthSwitcher(
             monthLabel = uiState.selectedMonth.toLedgerMonthLabel(),
             onPrevious = viewModel::showPreviousMonth,
             onNext = viewModel::showNextMonth,
         )
-        Button(
-            onClick = onAddTransaction,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("新增流水")
-        }
-        OutlinedTextField(
-            value = uiState.query,
-            onValueChange = viewModel::setQuery,
-            label = { Text("搜索") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = uiState.typeFilter == LedgerTypeFilter.All,
-                onClick = { viewModel.setTypeFilter(LedgerTypeFilter.All) },
-                label = { Text("全部") },
-            )
-            FilterChip(
-                selected = uiState.typeFilter == LedgerTypeFilter.Expense,
-                onClick = { viewModel.setTypeFilter(LedgerTypeFilter.Expense) },
-                label = { Text("支出") },
-            )
-            FilterChip(
-                selected = uiState.typeFilter == LedgerTypeFilter.Income,
-                onClick = { viewModel.setTypeFilter(LedgerTypeFilter.Income) },
-                label = { Text("收入") },
-            )
-        }
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(dateFilterOptions) { option ->
-                FilterChip(
-                    selected = uiState.dateFilter == option.filter,
-                    onClick = { viewModel.setDateFilter(option.filter) },
-                    label = { Text(option.label) },
-                )
-            }
-        }
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                FilterChip(
-                    selected = uiState.accountFilter == null,
-                    onClick = { viewModel.setAccountFilter(null) },
-                    label = { Text("全部账户") },
-                )
-            }
-            items(uiState.accounts, key = { it.id }) { account ->
-                FilterChip(
-                    selected = uiState.accountFilter == account.id,
-                    onClick = { viewModel.setAccountFilter(account.id) },
-                    label = { Text(account.name) },
-                )
-            }
-        }
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                FilterChip(
-                    selected = uiState.categoryFilter == null,
-                    onClick = { viewModel.setCategoryFilter(null) },
-                    label = { Text("全部分类") },
-                )
-            }
-            items(uiState.categories, key = { it.id }) { category ->
-                FilterChip(
-                    selected = uiState.categoryFilter == category.id,
-                    onClick = { viewModel.setCategoryFilter(category.id) },
-                    label = { Text(category.name) },
-                )
-            }
-        }
+        MonthSummaryCard(summary = uiState.monthSummary)
         if (uiState.transactions.isEmpty()) {
-            Text("还没有流水。")
+            EmptyLedgerMessage()
         } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = uiState.typeFilter == LedgerTypeFilter.All,
+                    onClick = { viewModel.setTypeFilter(LedgerTypeFilter.All) },
+                    label = { Text("全部") },
+                )
+                FilterChip(
+                    selected = uiState.typeFilter == LedgerTypeFilter.Expense,
+                    onClick = { viewModel.setTypeFilter(LedgerTypeFilter.Expense) },
+                    label = { Text("支出") },
+                )
+                FilterChip(
+                    selected = uiState.typeFilter == LedgerTypeFilter.Income,
+                    onClick = { viewModel.setTypeFilter(LedgerTypeFilter.Income) },
+                    label = { Text("收入") },
+                )
+            }
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(dateFilterOptions) { option ->
+                    FilterChip(
+                        selected = uiState.dateFilter == option.filter,
+                        onClick = { viewModel.setDateFilter(option.filter) },
+                        label = { Text(option.label) },
+                    )
+                }
+            }
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item {
+                    FilterChip(
+                        selected = uiState.accountFilter == null,
+                        onClick = { viewModel.setAccountFilter(null) },
+                        label = { Text("全部账户") },
+                    )
+                }
+                items(uiState.accounts, key = { it.id }) { account ->
+                    FilterChip(
+                        selected = uiState.accountFilter == account.id,
+                        onClick = { viewModel.setAccountFilter(account.id) },
+                        label = { Text(account.name) },
+                    )
+                }
+            }
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item {
+                    FilterChip(
+                        selected = uiState.categoryFilter == null,
+                        onClick = { viewModel.setCategoryFilter(null) },
+                        label = { Text("全部分类") },
+                    )
+                }
+                items(uiState.categories, key = { it.id }) { category ->
+                    FilterChip(
+                        selected = uiState.categoryFilter == category.id,
+                        onClick = { viewModel.setCategoryFilter(category.id) },
+                        label = { Text(category.name) },
+                    )
+                }
+            }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -171,6 +179,61 @@ fun LedgerRoute(
 }
 
 @Composable
+private fun LedgerHeader() {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            CircleIconButton(
+                icon = Icons.AutoMirrored.Outlined.CompareArrows,
+                contentDescription = "切换账本",
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CircleIconButton(
+                    icon = Icons.Outlined.MoreHoriz,
+                    contentDescription = "更多",
+                )
+                CircleIconButton(
+                    icon = Icons.Outlined.AccountCircle,
+                    contentDescription = "账户",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+        Text(
+            text = "默认账本",
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun CircleIconButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surface,
+                shape = CircleShape,
+            ),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(30.dp),
+        )
+    }
+}
+
+@Composable
 private fun MonthSwitcher(
     monthLabel: String,
     onPrevious: () -> Unit,
@@ -179,18 +242,68 @@ private fun MonthSwitcher(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
-        TextButton(onClick = onPrevious) {
-            Text("<")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            Text(
+                text = monthLabel,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            TextButton(onClick = onPrevious) {
+                Text("<")
+            }
+            TextButton(onClick = onNext) {
+                Text(">")
+            }
         }
         Text(
-            text = monthLabel,
+            text = "收支日历",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier
+                .background(
+                    color = Color(0xFFF0F0F2),
+                    shape = RoundedCornerShape(20.dp),
+                )
+                .padding(horizontal = 14.dp, vertical = 8.dp),
         )
-        TextButton(onClick = onNext) {
-            Text(">")
+    }
+}
+
+@Composable
+private fun EmptyLedgerMessage() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 72.dp),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "本月暂无数据",
+            color = Color(0xFFC7C7CC),
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    }
+}
+
+@Composable
+private fun SummaryDots() {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(Color(0xFFFFC02E), CircleShape),
+        )
+        repeat(2) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(Color(0xFFE0E0E2), CircleShape),
+            )
         }
     }
 }
@@ -200,40 +313,44 @@ private fun MonthSummaryCard(summary: MonthSummary) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Text(
-                text = "本月概览",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                text = "总支出 ⇄",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = MoneyCents(summary.expenseCents).format(),
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 SummaryMetric(
-                    label = "收入",
+                    label = "总收入",
                     amountCents = summary.incomeCents,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 SummaryMetric(
-                    label = "支出",
-                    amountCents = summary.expenseCents,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.weight(1f),
-                )
-                SummaryMetric(
-                    label = "结余",
+                    label = "月结余",
                     amountCents = summary.balanceCents,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                SummaryDots()
             }
         }
     }
@@ -244,21 +361,19 @@ private fun SummaryMetric(
     label: String,
     amountCents: Long,
     color: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                text = MoneyCents(amountCents).format(),
-                color = color,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = label,
+            color = color,
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = MoneyCents(amountCents).format(),
+            color = color,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
