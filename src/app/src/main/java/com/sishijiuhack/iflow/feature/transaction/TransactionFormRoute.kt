@@ -40,6 +40,7 @@ import java.time.ZoneId
 @Composable
 fun TransactionFormRoute(
     onClose: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: TransactionFormViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,7 +97,7 @@ fun TransactionFormRoute(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
