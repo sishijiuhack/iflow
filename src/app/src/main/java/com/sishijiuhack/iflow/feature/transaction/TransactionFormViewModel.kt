@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sishijiuhack.iflow.core.android.appContainer
+import com.sishijiuhack.iflow.core.model.MoneyExpression
 import com.sishijiuhack.iflow.core.model.MoneyParser
 import com.sishijiuhack.iflow.core.model.formatEditableTime
 import com.sishijiuhack.iflow.core.model.parseEditableTime
@@ -51,7 +52,7 @@ class TransactionFormViewModel(
             formState.value = normalizedForm
         }
         val amountError = normalizedForm.amountInput
-            .takeIf { it.isNotBlank() && MoneyParser.parseCents(it) == null }
+            .takeIf { it.isNotBlank() && MoneyExpression.evaluateCents(it) == null }
             ?.let { "请输入有效金额" }
         val timeError = normalizedForm.occurredAtInput
             .takeIf { it.isNotBlank() && parseEditableTime(it) == null }
@@ -67,7 +68,7 @@ class TransactionFormViewModel(
             pickerTimeMillis = parsedTime ?: normalizedForm.occurredAt,
             canSave = amountError == null &&
                 timeError == null &&
-                MoneyParser.parseCents(normalizedForm.amountInput) != null &&
+                MoneyExpression.evaluateCents(normalizedForm.amountInput) != null &&
                 parsedTime != null &&
                 normalizedForm.categoryId != null &&
                 normalizedForm.accountId != null,
@@ -107,7 +108,7 @@ class TransactionFormViewModel(
     }
 
     fun setAmount(value: String) {
-        if (value.isBlank() || MoneyParser.isPotentialAmount(value)) {
+        if (MoneyExpression.isPotential(value)) {
             formState.update { it.copy(amountInput = value) }
         }
     }
@@ -159,7 +160,7 @@ class TransactionFormViewModel(
 
     fun save() {
         val form = formState.value
-        val amountCents = MoneyParser.parseCents(form.amountInput) ?: return
+        val amountCents = MoneyExpression.evaluateCents(form.amountInput) ?: return
         val occurredAt = parseEditableTime(form.occurredAtInput) ?: return
         val categoryId = form.categoryId ?: return
         val accountId = form.accountId ?: return

@@ -444,6 +444,31 @@ private fun NumberKeyboard(
         listOf(".", "0", "保存再记", "完成"),
     )
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf("+", "-", "×", "÷").forEach { operator ->
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(18.dp),
+                    onClick = { appendAmountKey(amountInput, operator, onAmountChange) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = operator,
+                            color = mode.tintColor(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+        }
         rows.forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -563,7 +588,20 @@ private fun appendAmountKey(
     key: String,
     onAmountChange: (String) -> Unit,
 ) {
-    if (key == "." && current.contains(".")) return
+    val operators = setOf("+", "-", "×", "÷")
+    if (key in operators) {
+        if (current.isBlank()) return
+        val trimmed = current.dropLastWhile { it.isWhitespace() }
+        val next = if (trimmed.last().toString() in operators) {
+            trimmed.dropLast(1) + key
+        } else {
+            current + key
+        }
+        onAmountChange(next)
+        return
+    }
+    val currentPart = current.substringAfterLast('+').substringAfterLast('-').substringAfterLast('×').substringAfterLast('÷')
+    if (key == "." && currentPart.contains(".")) return
     val next = if (current == "0" && key != ".") key else current + key
     onAmountChange(next)
 }
