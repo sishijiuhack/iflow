@@ -116,6 +116,25 @@ class LedgerExporterTest {
     }
 
     @Test
+    fun toCsv_neutralizesFormulaLikeTextAfterCopiedSpacing() {
+        val snapshot = sampleSnapshot().let {
+            it.copy(
+                transactions = listOf(
+                    it.transactions.first().copy(
+                        merchant = "\u00A0=SUM(A1:A2)",
+                        note = "\u202F@cmd",
+                    ),
+                ),
+            )
+        }
+
+        val csv = exporter.toCsv(snapshot)
+
+        assertTrue(csv.contains("'\u00A0=SUM(A1:A2)"))
+        assertTrue(csv.contains("'\u202F@cmd"))
+    }
+
+    @Test
     fun toCsv_neutralizesFormulaLikeCategoryAndAccountNames() {
         val snapshot = sampleSnapshot().let {
             it.copy(

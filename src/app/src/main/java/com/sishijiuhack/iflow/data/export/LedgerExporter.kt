@@ -143,7 +143,7 @@ class LedgerExporter {
     }
 
     private fun String.firstNonWhitespaceChar(): Char? {
-        return firstOrNull { !it.isWhitespace() }
+        return firstOrNull { !it.isWhitespace() && !Character.isSpaceChar(it) }
     }
 
     private companion object {
