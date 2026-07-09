@@ -12,6 +12,7 @@ import com.sishijiuhack.iflow.core.model.parseEditableTime
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.data.repository.SaveTransactionInput
+import com.sishijiuhack.iflow.data.repository.SaveTransferInput
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,6 +94,15 @@ class TransactionFormViewModel(
                 parsedTime != null &&
                 normalizedForm.categoryId != null &&
                 normalizedForm.accountId != null,
+            canSaveTransfer = amountError == null &&
+                discountError == null &&
+                feeError == null &&
+                timeError == null &&
+                baseAmountCents != null &&
+                parsedTime != null &&
+                normalizedForm.transferFromAccountId != null &&
+                normalizedForm.transferToAccountId != null &&
+                normalizedForm.transferFromAccountId != normalizedForm.transferToAccountId,
             saveFinished = finished,
         )
     }.stateIn(
@@ -140,6 +150,14 @@ class TransactionFormViewModel(
 
     fun setAccount(id: Long) {
         formState.update { it.copy(accountId = id) }
+    }
+
+    fun setTransferFromAccount(id: Long) {
+        formState.update { it.copy(transferFromAccountId = id) }
+    }
+
+    fun setTransferToAccount(id: Long) {
+        formState.update { it.copy(transferToAccountId = id) }
     }
 
     fun setMerchant(value: String) {
@@ -254,6 +272,29 @@ class TransactionFormViewModel(
         }
     }
 
+    fun saveTransfer() {
+        val form = formState.value
+        val baseAmountCents = MoneyExpression.evaluateCents(form.amountInput) ?: return
+        val discountCents = form.discountInput.takeIf { it.isNotBlank() }?.let { MoneyExpression.evaluateCents(it) } ?: 0L
+        val amountCents = (baseAmountCents - discountCents).takeIf { it > 0L } ?: return
+        val occurredAt = parseEditableTime(form.occurredAtInput) ?: return
+        val fromAccountId = form.transferFromAccountId ?: return
+        val toAccountId = form.transferToAccountId ?: return
+        if (fromAccountId == toAccountId) return
+        viewModelScope.launch {
+            repository.saveManualTransfer(
+                SaveTransferInput(
+                    amountCents = amountCents,
+                    fromAccountId = fromAccountId,
+                    toAccountId = toAccountId,
+                    note = form.note.withMeta(form),
+                    occurredAt = occurredAt,
+                ),
+            )
+            saveFinished.value = true
+        }
+    }
+
     private fun currentEditableDateTime(): LocalDateTime {
         val form = formState.value
         val millis = parseEditableTime(form.occurredAtInput) ?: form.occurredAt
@@ -287,6 +328,7 @@ data class TransactionFormUiState(
     val timeError: String? = null,
     val pickerTimeMillis: Long = System.currentTimeMillis(),
     val canSave: Boolean = false,
+    val canSaveTransfer: Boolean = false,
     val saveFinished: Boolean = false,
 )
 
@@ -296,6 +338,8 @@ data class TransactionFormState(
     val amountInput: String = "",
     val categoryId: Long? = null,
     val accountId: Long? = null,
+    val transferFromAccountId: Long? = null,
+    val transferToAccountId: Long? = null,
     val merchant: String = "",
     val note: String = "",
     val tag: String = "",
@@ -314,9 +358,12 @@ data class TransactionFormState(
         defaultAccountId: Long?,
     ): TransactionFormState {
         val defaultAccount = accounts.firstOrNull { it.id == defaultAccountId } ?: accounts.firstOrNull()
+        val nextAccount = accounts.firstOrNull { it.id != defaultAccount?.id } ?: defaultAccount
         return copy(
             categoryId = categoryId ?: categories.firstOrNull()?.id,
             accountId = accountId ?: defaultAccount?.id,
+            transferFromAccountId = transferFromAccountId ?: defaultAccount?.id,
+            transferToAccountId = transferToAccountId ?: nextAccount?.id,
         )
     }
 }

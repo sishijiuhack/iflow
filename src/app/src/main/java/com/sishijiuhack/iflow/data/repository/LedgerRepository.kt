@@ -1,5 +1,6 @@
 package com.sishijiuhack.iflow.data.repository
 
+import androidx.room.withTransaction
 import com.sishijiuhack.iflow.data.local.DefaultDataSeeder
 import com.sishijiuhack.iflow.data.local.IFlowDatabase
 import com.sishijiuhack.iflow.data.local.entity.AccountEntity
@@ -141,7 +142,7 @@ class LedgerRepository(
         return transactionDao.observeByStatus(TransactionStatus.Confirmed).map { transactions ->
             val monthConfirmed = transactions.filter {
                 it.occurredAt in start until end
-            }
+            }.filterNot { it.isTransferTransaction() }
             val income = monthConfirmed
                 .filter { it.type == TransactionType.Income }
                 .sumOf { it.amountCents }
@@ -171,7 +172,8 @@ class LedgerRepository(
             categoryDao.observeAll(),
         ) { transactions, categories ->
             val categoryMap = categories.associateBy { it.id }
-            val monthConfirmed = transactions.filter {
+            val nonTransferTransactions = transactions.filterNot { it.isTransferTransaction() }
+            val monthConfirmed = nonTransferTransactions.filter {
                 it.occurredAt in start until end
             }
             val income = monthConfirmed
@@ -180,12 +182,12 @@ class LedgerRepository(
             val expense = monthConfirmed
                 .filter { it.type == TransactionType.Expense }
                 .sumOf { it.amountCents }
-            val todayExpense = transactions
+            val todayExpense = nonTransferTransactions
                 .filter {
                     it.type == TransactionType.Expense && it.occurredAt in todayStart until tomorrowStart
                 }
                 .sumOf { it.amountCents }
-            val last7DaysExpense = transactions
+            val last7DaysExpense = nonTransferTransactions
                 .filter {
                     it.type == TransactionType.Expense && it.occurredAt in last7DaysStart until tomorrowStart
                 }
@@ -196,7 +198,7 @@ class LedgerRepository(
                 val dayEnd = day.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
                 DailyExpense(
                     label = "${day.monthValue}/${day.dayOfMonth}",
-                    amountCents = transactions
+                    amountCents = nonTransferTransactions
                         .filter {
                             it.type == TransactionType.Expense && it.occurredAt in dayStart until dayEnd
                         }
@@ -293,6 +295,60 @@ class LedgerRepository(
         } else {
             transactionDao.update(entity)
             input.id
+        }
+    }
+
+    suspend fun saveManualTransfer(input: SaveTransferInput): Pair<Long, Long> {
+        ensureDefaultData()
+        require(input.amountCents > 0L) { "Transfer amount must be positive." }
+        require(input.fromAccountId != input.toAccountId) { "Transfer accounts must be different." }
+        val fromAccount = accountDao.getById(input.fromAccountId)
+        val toAccount = accountDao.getById(input.toAccountId)
+        require(fromAccount != null) { "Transfer source account was not found." }
+        require(toAccount != null) { "Transfer target account was not found." }
+        val expenseCategory = categoryDao.listByType(TransactionType.Expense)
+            .firstOrNull { it.name.contains("转账") }
+            ?: categoryDao.listByType(TransactionType.Expense).firstOrNull()
+            ?: error("Expense transfer category was not found.")
+        val incomeCategory = categoryDao.listByType(TransactionType.Income)
+            .firstOrNull { it.name.contains("其他") }
+            ?: categoryDao.listByType(TransactionType.Income).firstOrNull()
+            ?: error("Income transfer category was not found.")
+        val now = System.currentTimeMillis()
+        val transferMark = "转账 ${fromAccount.name} -> ${toAccount.name}"
+        val note = input.note.trim().ifBlank { transferMark }
+        return database.withTransaction {
+            val expenseId = transactionDao.insert(
+                TransactionEntity(
+                    type = TransactionType.Expense,
+                    amountCents = input.amountCents,
+                    categoryId = expenseCategory.id,
+                    accountId = input.fromAccountId,
+                    merchant = toAccount.name,
+                    note = "$note #转账转出",
+                    occurredAt = input.occurredAt,
+                    source = TransactionSource.Manual,
+                    status = TransactionStatus.Confirmed,
+                    createdAt = now,
+                    updatedAt = now,
+                ),
+            )
+            val incomeId = transactionDao.insert(
+                TransactionEntity(
+                    type = TransactionType.Income,
+                    amountCents = input.amountCents,
+                    categoryId = incomeCategory.id,
+                    accountId = input.toAccountId,
+                    merchant = fromAccount.name,
+                    note = "$note #转账转入",
+                    occurredAt = input.occurredAt,
+                    source = TransactionSource.Manual,
+                    status = TransactionStatus.Confirmed,
+                    createdAt = now,
+                    updatedAt = now,
+                ),
+            )
+            expenseId to incomeId
         }
     }
 
@@ -459,6 +515,10 @@ class LedgerRepository(
             status = status,
         )
     }
+
+    private fun TransactionEntity.isTransferTransaction(): Boolean {
+        return note?.contains("#转账") == true
+    }
 }
 
 data class SaveTransactionInput(
@@ -471,6 +531,14 @@ data class SaveTransactionInput(
     val note: String,
     val occurredAt: Long,
     val status: TransactionStatus = TransactionStatus.Confirmed,
+)
+
+data class SaveTransferInput(
+    val amountCents: Long,
+    val fromAccountId: Long,
+    val toAccountId: Long,
+    val note: String,
+    val occurredAt: Long,
 )
 
 data class TransactionListItem(

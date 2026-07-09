@@ -76,6 +76,7 @@ fun TransactionFormRoute(
     var showDiscountInput by remember { mutableStateOf(false) }
     var showAttachmentInput by remember { mutableStateOf(false) }
     var showFeeInput by remember { mutableStateOf(false) }
+    var transferAccountPicker by remember { mutableStateOf<TransferAccountTarget?>(null) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
 
     LaunchedEffect(uiState.saveFinished) {
@@ -128,12 +129,33 @@ fun TransactionFormRoute(
 
     if (showAccountPicker) {
         AccountPickerDialog(
+            title = "选择账户",
             accounts = uiState.accounts,
             selectedAccountId = uiState.form.accountId,
             onDismiss = { showAccountPicker = false },
             onAccountSelected = { accountId ->
                 viewModel.setAccount(accountId)
                 showAccountPicker = false
+            },
+        )
+    }
+
+    transferAccountPicker?.let { target ->
+        AccountPickerDialog(
+            title = if (target == TransferAccountTarget.From) "选择转出账户" else "选择转入账户",
+            accounts = uiState.accounts,
+            selectedAccountId = if (target == TransferAccountTarget.From) {
+                uiState.form.transferFromAccountId
+            } else {
+                uiState.form.transferToAccountId
+            },
+            onDismiss = { transferAccountPicker = null },
+            onAccountSelected = { accountId ->
+                when (target) {
+                    TransferAccountTarget.From -> viewModel.setTransferFromAccount(accountId)
+                    TransferAccountTarget.To -> viewModel.setTransferToAccount(accountId)
+                }
+                transferAccountPicker = null
             },
         )
     }
@@ -207,7 +229,13 @@ fun TransactionFormRoute(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (selectedMode == EntryMode.Transfer) {
-                TransferAccountCards(accounts = uiState.accounts)
+                TransferAccountCards(
+                    accounts = uiState.accounts,
+                    fromAccountId = uiState.form.transferFromAccountId,
+                    toAccountId = uiState.form.transferToAccountId,
+                    onFromClick = { transferAccountPicker = TransferAccountTarget.From },
+                    onToClick = { transferAccountPicker = TransferAccountTarget.To },
+                )
             } else {
                 CategoryGrid(
                     categories = uiState.categories,
@@ -254,9 +282,15 @@ fun TransactionFormRoute(
             NumberKeyboard(
                 amountInput = uiState.form.amountInput,
                 onAmountChange = viewModel::setAmount,
-                onDone = { viewModel.save(closeAfterSave = true) },
+                onDone = {
+                    if (selectedMode == EntryMode.Transfer) {
+                        viewModel.saveTransfer()
+                    } else {
+                        viewModel.save(closeAfterSave = true)
+                    }
+                },
                 onSaveAndContinue = { viewModel.save(closeAfterSave = false) },
-                canSave = uiState.canSave && selectedMode != EntryMode.Transfer,
+                canSave = if (selectedMode == EntryMode.Transfer) uiState.canSaveTransfer else uiState.canSave,
                 canSaveAndContinue = uiState.canSave && !uiState.isEdit && selectedMode != EntryMode.Transfer,
                 mode = selectedMode,
             )
@@ -456,6 +490,7 @@ private fun ActionPill(
 
 @Composable
 private fun AccountPickerDialog(
+    title: String,
     accounts: List<AccountEntity>,
     selectedAccountId: Long?,
     onDismiss: () -> Unit,
@@ -465,7 +500,7 @@ private fun AccountPickerDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "选择账户",
+                text = title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -898,23 +933,30 @@ private fun NumberKeyboard(
 @Composable
 private fun TransferAccountCards(
     accounts: List<AccountEntity>,
+    fromAccountId: Long?,
+    toAccountId: Long?,
+    onFromClick: () -> Unit,
+    onToClick: () -> Unit,
 ) {
-    val fromAccount = accounts.firstOrNull()?.name ?: "选择转出账户"
-    val toAccount = accounts.drop(1).firstOrNull()?.name ?: "选择转入账户"
+    val fromAccount = accounts.firstOrNull { it.id == fromAccountId }?.name ?: "选择转出账户"
+    val toAccount = accounts.firstOrNull { it.id == toAccountId }?.name ?: "选择转入账户"
+    val sameAccount = fromAccountId != null && fromAccountId == toAccountId
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TransferAccountCard(
             label = "转出账户",
             accountName = fromAccount,
             iconText = "↑",
+            onClick = onFromClick,
         )
         TransferAccountCard(
             label = "转入账户",
             accountName = toAccount,
             iconText = "↓",
+            onClick = onToClick,
         )
         Text(
-            text = "转账保存流程将在账户模型扩展后启用",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = if (sameAccount) "转出和转入账户不能相同" else "点击账户卡可切换转出或转入账户",
+            color = if (sameAccount) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),
         )
@@ -926,10 +968,12 @@ private fun TransferAccountCard(
     label: String,
     accountName: String,
     iconText: String,
+    onClick: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -1011,6 +1055,11 @@ private enum class EntryMode {
     Expense,
     Income,
     Transfer,
+}
+
+private enum class TransferAccountTarget {
+    From,
+    To,
 }
 
 private fun TransactionType.toEntryMode(): EntryMode {
