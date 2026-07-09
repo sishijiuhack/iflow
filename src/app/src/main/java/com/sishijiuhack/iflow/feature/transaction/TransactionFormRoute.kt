@@ -2,19 +2,30 @@ package com.sishijiuhack.iflow.feature.transaction
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,7 +36,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
@@ -103,23 +118,12 @@ fun TransactionFormRoute(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = if (uiState.isEdit) "编辑流水" else "记一笔",
-            style = MaterialTheme.typography.headlineSmall,
+        TransactionSheetHeader(
+            isEdit = uiState.isEdit,
+            selectedType = uiState.form.type,
+            onTypeSelected = viewModel::setType,
+            onClose = onClose,
         )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = uiState.form.type == TransactionType.Expense,
-                onClick = { viewModel.setType(TransactionType.Expense) },
-                label = { Text("支出") },
-            )
-            FilterChip(
-                selected = uiState.form.type == TransactionType.Income,
-                onClick = { viewModel.setType(TransactionType.Income) },
-                label = { Text("收入") },
-            )
-        }
 
         OutlinedTextField(
             value = uiState.form.amountInput,
@@ -206,13 +210,109 @@ fun TransactionFormRoute(
             Button(
                 onClick = viewModel::save,
                 enabled = uiState.canSave,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (uiState.form.type == TransactionType.Income) {
+                        MaterialTheme.colorScheme.secondary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("保存")
-            }
-            TextButton(onClick = onClose) {
-                Text("取消")
+                Text("完成")
             }
         }
+    }
+}
+
+@Composable
+private fun TransactionSheetHeader(
+    isEdit: Boolean,
+    selectedType: TransactionType,
+    onTypeSelected: (TransactionType) -> Unit,
+    onClose: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            TextButton(onClick = onClose) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = "关闭",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
+        Surface(
+            color = Color(0xFFF0F0F2),
+            shape = RoundedCornerShape(28.dp),
+        ) {
+            Row(
+                modifier = Modifier.padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TypeSegment(
+                    text = "支出",
+                    selected = selectedType == TransactionType.Expense,
+                    onClick = { onTypeSelected(TransactionType.Expense) },
+                )
+                TypeSegment(
+                    text = "收入",
+                    selected = selectedType == TransactionType.Income,
+                    onClick = { onTypeSelected(TransactionType.Income) },
+                )
+                TypeSegment(
+                    text = "转账",
+                    selected = false,
+                    enabled = false,
+                    onClick = {},
+                )
+            }
+        }
+        Text(
+            text = if (isEdit) "编辑流水" else "默认账本",
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun TypeSegment(
+    text: String,
+    selected: Boolean,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Surface(
+        color = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
+        shape = RoundedCornerShape(24.dp),
+        onClick = onClick,
+        enabled = enabled,
+    ) {
+        Text(
+            text = text,
+            color = when {
+                !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                selected -> MaterialTheme.colorScheme.onSurface
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        )
     }
 }
 
@@ -222,27 +322,60 @@ private fun CategoryGrid(
     selectedCategoryId: Long?,
     onCategoryClick: (Long) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("分类", style = MaterialTheme.typography.titleSmall)
-        categories.chunked(4).forEach { rowCategories ->
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        categories.chunked(5).forEach { rowCategories ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 rowCategories.forEach { category ->
-                    FilterChip(
+                    CategoryTile(
+                        category = category,
                         selected = selectedCategoryId == category.id,
                         onClick = { onCategoryClick(category.id) },
-                        label = {
-                            Text("${category.icon.toCategoryEmoji()} ${category.name}")
-                        },
                         modifier = Modifier.weight(1f),
                     )
                 }
-                repeat(4 - rowCategories.size) {
+                repeat(5 - rowCategories.size) {
                     Column(modifier = Modifier.weight(1f)) {}
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CategoryTile(
+    category: CategoryEntity,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(
+                    color = if (selected) MaterialTheme.colorScheme.error else Color(0xFFF0F0F2),
+                    shape = CircleShape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = category.icon.toCategoryEmoji(),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        }
+        Text(
+            text = category.name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
     }
 }
