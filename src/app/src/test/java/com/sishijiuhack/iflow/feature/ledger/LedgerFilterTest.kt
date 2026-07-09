@@ -54,6 +54,15 @@ class LedgerFilterTest {
     }
 
     @Test
+    fun filterTransactions_matchesCurrencyAmountQueryWithCopiedSpacing() {
+        val noBreakSpace = filterTransactions(sampleTransactions, "RMB\u00A018.00", LedgerTypeFilter.All)
+        val narrowNoBreakSpace = filterTransactions(sampleTransactions, "CNY\u202F18.00", LedgerTypeFilter.All)
+
+        assertEquals(listOf(1L), noBreakSpace.map { it.id })
+        assertEquals(listOf(1L), narrowNoBreakSpace.map { it.id })
+    }
+
+    @Test
     fun filterTransactions_matchesQueryBySignedIncomeAmount() {
         val result = filterTransactions(sampleTransactions, "+5000.00", LedgerTypeFilter.All)
 
