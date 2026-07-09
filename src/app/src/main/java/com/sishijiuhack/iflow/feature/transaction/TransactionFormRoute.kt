@@ -78,6 +78,7 @@ fun TransactionFormRoute(
     var showFeeInput by remember { mutableStateOf(false) }
     var transferAccountPicker by remember { mutableStateOf<TransferAccountTarget?>(null) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
+    var expandedCategoryId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(uiState.saveFinished) {
         if (uiState.saveFinished) {
@@ -240,7 +241,17 @@ fun TransactionFormRoute(
                 CategoryGrid(
                     categories = uiState.categories,
                     selectedCategoryId = uiState.form.categoryId,
-                    onCategoryClick = viewModel::setCategory,
+                    selectedSubcategory = uiState.form.subcategory,
+                    expandedCategoryId = expandedCategoryId,
+                    onCategoryClick = { category ->
+                        viewModel.setCategory(category.id)
+                        expandedCategoryId = if (category.subcategories().isNotEmpty()) {
+                            if (expandedCategoryId == category.id) null else category.id
+                        } else {
+                            null
+                        }
+                    },
+                    onSubcategoryClick = viewModel::setSubcategory,
                 )
             }
         }
@@ -1082,7 +1093,10 @@ private fun EntryMode.tintColor(): Color {
 private fun CategoryGrid(
     categories: List<CategoryEntity>,
     selectedCategoryId: Long?,
-    onCategoryClick: (Long) -> Unit,
+    selectedSubcategory: String,
+    expandedCategoryId: Long?,
+    onCategoryClick: (CategoryEntity) -> Unit,
+    onSubcategoryClick: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         categories.chunked(5).forEach { rowCategories ->
@@ -1094,13 +1108,21 @@ private fun CategoryGrid(
                     CategoryTile(
                         category = category,
                         selected = selectedCategoryId == category.id,
-                        onClick = { onCategoryClick(category.id) },
+                        hasSubcategories = category.subcategories().isNotEmpty(),
+                        onClick = { onCategoryClick(category) },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 repeat(5 - rowCategories.size) {
                     Column(modifier = Modifier.weight(1f)) {}
                 }
+            }
+            rowCategories.firstOrNull { it.id == expandedCategoryId }?.let { expandedCategory ->
+                SubcategoryBand(
+                    subcategories = expandedCategory.subcategories(),
+                    selectedSubcategory = selectedSubcategory,
+                    onSubcategoryClick = onSubcategoryClick,
+                )
             }
         }
     }
@@ -1110,6 +1132,7 @@ private fun CategoryGrid(
 private fun CategoryTile(
     category: CategoryEntity,
     selected: Boolean,
+    hasSubcategories: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -1131,6 +1154,22 @@ private fun CategoryTile(
                 text = category.icon.toCategoryEmoji(),
                 style = MaterialTheme.typography.titleMedium,
             )
+            if (hasSubcategories) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(13.dp)
+                        .background(Color(0xFF8E8E93), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "…",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
         }
         Text(
             text = category.name,
@@ -1139,5 +1178,69 @@ private fun CategoryTile(
             textAlign = TextAlign.Center,
             maxLines = 1,
         )
+    }
+}
+
+@Composable
+private fun SubcategoryBand(
+    subcategories: List<String>,
+    selectedSubcategory: String,
+    onSubcategoryClick: (String) -> Unit,
+) {
+    Surface(
+        color = Color(0xFFF0F0F2),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            subcategories.chunked(4).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    rowItems.forEach { subcategory ->
+                        val selected = selectedSubcategory == subcategory
+                        Surface(
+                            color = if (selected) Color(0xFFEAF3FF) else Color.Transparent,
+                            shape = RoundedCornerShape(18.dp),
+                            onClick = { onSubcategoryClick(subcategory) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                text = subcategory,
+                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                    repeat(4 - rowItems.size) {
+                        Box(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun CategoryEntity.subcategories(): List<String> {
+    return when (name) {
+        "餐饮" -> listOf("三餐", "零食", "水果", "蔬菜")
+        "购物" -> listOf("服饰", "日用", "数码", "美妆护肤", "应用软件")
+        "住房" -> listOf("房租", "维修", "水电费")
+        "交通" -> listOf("公交", "地铁", "火车", "飞机", "打车")
+        "医疗" -> listOf("门诊", "住院", "疫苗", "体检", "保险")
+        "教育" -> listOf("书籍", "课程", "考试", "文具")
+        "社交" -> listOf("聚会", "礼物", "人情", "捐赠")
+        "旅行" -> listOf("住宿", "门票", "交通", "餐饮")
+        "家居" -> listOf("家具", "家电", "清洁", "装饰")
+        "运动" -> listOf("健身", "装备", "场地", "课程")
+        else -> emptyList()
     }
 }

@@ -135,7 +135,7 @@ class TransactionFormViewModel(
     }
 
     fun setType(type: TransactionType) {
-        formState.update { it.copy(type = type, categoryId = null) }
+        formState.update { it.copy(type = type, categoryId = null, subcategory = "") }
     }
 
     fun setAmount(value: String) {
@@ -145,7 +145,11 @@ class TransactionFormViewModel(
     }
 
     fun setCategory(id: Long) {
-        formState.update { it.copy(categoryId = id) }
+        formState.update { it.copy(categoryId = id, subcategory = "") }
+    }
+
+    fun setSubcategory(value: String) {
+        formState.update { it.copy(subcategory = value.trim()) }
     }
 
     fun setAccount(id: Long) {
@@ -337,6 +341,7 @@ data class TransactionFormState(
     val type: TransactionType = TransactionType.Expense,
     val amountInput: String = "",
     val categoryId: Long? = null,
+    val subcategory: String = "",
     val accountId: Long? = null,
     val transferFromAccountId: Long? = null,
     val transferToAccountId: Long? = null,
@@ -373,6 +378,7 @@ private fun String.withMeta(form: TransactionFormState): String {
     val trimmedNote = trim()
     if (trimmedNote.isNotBlank()) parts += trimmedNote
     form.tag.trim().removePrefix("#").takeIf { it.isNotBlank() }?.let { parts += "#$it" }
+    form.subcategory.trim().takeIf { it.isNotBlank() }?.let { parts += "#分类/$it" }
     if (form.reimbursable) parts += "#报销"
     if (form.marked) parts += "#标记"
     form.discountInput.trim().takeIf { it.isNotBlank() }?.let { parts += "优惠¥$it" }
