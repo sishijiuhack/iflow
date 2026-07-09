@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.sishijiuhack.iflow.feature.assets.AssetsRoute
 import com.sishijiuhack.iflow.feature.home.HomeRoute
 import com.sishijiuhack.iflow.feature.ledger.LedgerRoute
 import com.sishijiuhack.iflow.feature.pending.PendingRoute
@@ -26,20 +27,24 @@ fun IFlowApp() {
     val navController = rememberNavController()
     val destinations = IFlowDestination.entries
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route ?: IFlowDestination.Home.route
+    val currentRoute = currentBackStackEntry?.destination?.route ?: IFlowDestination.Ledger.route
 
     Scaffold(
         bottomBar = {
             NavigationBar {
                 destinations.forEach { destination ->
+                    val selected = when (destination) {
+                        IFlowDestination.New -> currentRoute.startsWith("transaction/")
+                        else -> currentRoute == destination.route
+                    }
                     NavigationBarItem(
-                        selected = currentRoute == destination.route,
+                        selected = selected,
                         onClick = {
                             navController.navigate(destination.route) {
                                 launchSingleTop = true
-                                restoreState = true
+                                restoreState = destination != IFlowDestination.New
                                 popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                                    saveState = destination != IFlowDestination.New
                                 }
                             }
                         },
@@ -57,10 +62,10 @@ fun IFlowApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = IFlowDestination.Home.route,
+            startDestination = IFlowDestination.Ledger.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(IFlowDestination.Home.route) {
+            composable("home") {
                 HomeRoute(
                     onAddTransaction = { navController.navigate("transaction/new") },
                     onOpenPending = { navController.navigate("pending") },
@@ -72,8 +77,13 @@ fun IFlowApp() {
                     onEditTransaction = { id -> navController.navigate("transaction/$id") },
                 )
             }
+            composable(IFlowDestination.Assets.route) {
+                AssetsRoute(
+                    onOpenSettings = { navController.navigate("settings") },
+                )
+            }
             composable(IFlowDestination.Stats.route) { StatsRoute() }
-            composable(IFlowDestination.Settings.route) { SettingsRoute() }
+            composable("settings") { SettingsRoute() }
             composable("pending") {
                 PendingRoute(
                     onEditTransaction = { id -> navController.navigate("transaction/$id") },

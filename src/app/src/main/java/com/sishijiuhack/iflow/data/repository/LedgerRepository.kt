@@ -95,6 +95,37 @@ class LedgerRepository(
         }
     }
 
+    fun observeAccountBalances(): Flow<AccountBalanceSummary> {
+        return combine(
+            transactionDao.observeByStatus(TransactionStatus.Confirmed),
+            accountDao.observeAll(),
+        ) { transactions, accounts ->
+            val items = accounts.map { account ->
+                val balance = transactions
+                    .filter { it.accountId == account.id }
+                    .sumOf { transaction ->
+                        when (transaction.type) {
+                            TransactionType.Income -> transaction.amountCents
+                            TransactionType.Expense -> -transaction.amountCents
+                        }
+                    }
+                AccountBalanceItem(
+                    accountId = account.id,
+                    accountName = account.name,
+                    accountType = account.type,
+                    balanceCents = balance,
+                )
+            }
+            val netAssets = items.sumOf { it.balanceCents }
+            AccountBalanceSummary(
+                netAssetsCents = netAssets,
+                totalAssetsCents = items.filter { it.balanceCents > 0L }.sumOf { it.balanceCents },
+                totalLiabilitiesCents = items.filter { it.balanceCents < 0L }.sumOf { -it.balanceCents },
+                accounts = items,
+            )
+        }
+    }
+
     fun observeMonthSummary(
         zoneId: ZoneId = ZoneId.systemDefault(),
         month: YearMonth = YearMonth.now(zoneId),
@@ -447,6 +478,20 @@ data class TransactionListItem(
     val occurredAt: Long,
     val source: TransactionSource,
     val status: TransactionStatus,
+)
+
+data class AccountBalanceSummary(
+    val netAssetsCents: Long = 0,
+    val totalAssetsCents: Long = 0,
+    val totalLiabilitiesCents: Long = 0,
+    val accounts: List<AccountBalanceItem> = emptyList(),
+)
+
+data class AccountBalanceItem(
+    val accountId: Long,
+    val accountName: String,
+    val accountType: AccountType,
+    val balanceCents: Long,
 )
 
 data class MonthSummary(

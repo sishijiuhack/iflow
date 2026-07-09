@@ -104,6 +104,56 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeAccountBalances_sumsConfirmedTransactionsByAccount() = runTest {
+        repository.ensureDefaultData()
+        val expenseCategoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
+        val incomeCategoryId = database.categoryDao().listByType(TransactionType.Income).first().id
+        val cashAccountId = database.accountDao().listAll().first { it.type == AccountType.Cash }.id
+        val bankAccountId = database.accountDao().listAll().first { it.type == AccountType.Bank }.id
+
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 500L,
+                categoryId = incomeCategoryId,
+                accountId = cashAccountId,
+                occurredAt = 1_000L,
+            ).copy(type = TransactionType.Income),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 200L,
+                categoryId = expenseCategoryId,
+                accountId = cashAccountId,
+                occurredAt = 2_000L,
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 1200L,
+                categoryId = expenseCategoryId,
+                accountId = bankAccountId,
+                occurredAt = 3_000L,
+            ),
+        )
+        repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 900L,
+                categoryId = expenseCategoryId,
+                accountId = bankAccountId,
+                occurredAt = 4_000L,
+            ).copy(status = TransactionStatus.Pending),
+        )
+
+        val summary = repository.observeAccountBalances().first()
+
+        assertEquals(300L, summary.accounts.first { it.accountId == cashAccountId }.balanceCents)
+        assertEquals(-1200L, summary.accounts.first { it.accountId == bankAccountId }.balanceCents)
+        assertEquals(-900L, summary.netAssetsCents)
+        assertEquals(300L, summary.totalAssetsCents)
+        assertEquals(1200L, summary.totalLiabilitiesCents)
+    }
+
+    @Test
     fun observePendingCount_updatesAfterConfirmAndDelete() = runTest {
         val firstId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-pending-count-1"))
         val secondId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-pending-count-2"))

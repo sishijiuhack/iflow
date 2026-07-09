@@ -8,6 +8,8 @@ private val LightColorScheme = lightColorScheme(
     primary = IFlowPrimary,
     secondary = IFlowSecondary,
     tertiary = IFlowTertiary,
+    background = IFlowBackground,
+    surface = IFlowSurface,
 )
 
 @Composable
