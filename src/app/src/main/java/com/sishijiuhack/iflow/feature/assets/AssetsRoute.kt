@@ -1,6 +1,5 @@
 package com.sishijiuhack.iflow.feature.assets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,8 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,35 +75,40 @@ private fun NetAssetCard(
     totalAssetsCents: Long,
     totalLiabilitiesCents: Long,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFFFFB5C2), Color(0xFFC9B1FF)),
-                ),
-                shape = RoundedCornerShape(16.dp),
-            )
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Text(
-            text = "净资产",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF4B394B),
-        )
-        Text(
-            text = MoneyCents(netAssetsCents).format(),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF3F2E56),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("总资产 ${MoneyCents(totalAssetsCents).format()}", color = Color(0xFF4B394B))
-            Text("负债 ${MoneyCents(totalLiabilitiesCents).format()}", color = Color(0xFF4B394B))
+            Text(
+                text = "净资产",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = MoneyCents(netAssetsCents).format(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "总资产 ${MoneyCents(totalAssetsCents).format()}",
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+                Text(
+                    text = "负债 ${MoneyCents(totalLiabilitiesCents).format()}",
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }
@@ -116,7 +118,7 @@ private fun AccountBalanceRow(account: AccountBalanceItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
@@ -141,7 +143,11 @@ private fun AccountBalanceRow(account: AccountBalanceItem) {
             Text(
                 text = MoneyCents(account.balanceCents).format(),
                 style = MaterialTheme.typography.titleMedium,
-                color = if (account.balanceCents < 0L) Color(0xFFFF6B6B) else Color(0xFF51CF66),
+                color = if (account.balanceCents < 0L) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.secondary
+                },
                 fontWeight = FontWeight.SemiBold,
             )
         }

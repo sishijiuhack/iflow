@@ -1,0 +1,37 @@
+package com.sishijiuhack.iflow.core.model
+
+fun String?.toCategoryEmoji(): String {
+    return when (this) {
+        "restaurant" -> "🍽"
+        "directions_car" -> "🚗"
+        "shopping_bag" -> "🛍"
+        "home" -> "🏠"
+        "movie" -> "🎬"
+        "medical_services" -> "💊"
+        "swap_horiz" -> "↔"
+        "phone" -> "📱"
+        "school" -> "🎓"
+        "checkroom" -> "👕"
+        "spa" -> "💄"
+        "groups" -> "👥"
+        "flight" -> "✈"
+        "pets" -> "🐾"
+        "child_care" -> "🧸"
+        "chair" -> "🛋"
+        "devices" -> "💻"
+        "fitness_center" -> "🏃"
+        "health_and_safety" -> "🛡"
+        "receipt_long" -> "🧾"
+        "more_horiz" -> "•••"
+        "payments" -> "💼"
+        "redeem" -> "🎁"
+        "work" -> "🧰"
+        "trending_up" -> "📈"
+        "savings" -> "🏦"
+        "card_giftcard" -> "🧧"
+        "undo" -> "↩"
+        "add_circle" -> "➕"
+        null, "" -> "•"
+        else -> this.takeIf { it.length <= 2 } ?: "•"
+    }
+}

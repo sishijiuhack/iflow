@@ -31,6 +31,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sishijiuhack.iflow.core.model.toCategoryEmoji
+import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.Instant
 import java.time.ZoneId
@@ -131,21 +133,11 @@ fun TransactionFormRoute(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Text("分类", style = MaterialTheme.typography.titleSmall)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            uiState.categories.forEach { category ->
-                FilterChip(
-                    selected = uiState.form.categoryId == category.id,
-                    onClick = { viewModel.setCategory(category.id) },
-                    label = { Text(category.name) },
-                )
-            }
-        }
+        CategoryGrid(
+            categories = uiState.categories,
+            selectedCategoryId = uiState.form.categoryId,
+            onCategoryClick = viewModel::setCategory,
+        )
 
         Text("账户", style = MaterialTheme.typography.titleSmall)
         Row(
@@ -218,6 +210,37 @@ fun TransactionFormRoute(
             }
             TextButton(onClick = onClose) {
                 Text("取消")
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryGrid(
+    categories: List<CategoryEntity>,
+    selectedCategoryId: Long?,
+    onCategoryClick: (Long) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("分类", style = MaterialTheme.typography.titleSmall)
+        categories.chunked(4).forEach { rowCategories ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                rowCategories.forEach { category ->
+                    FilterChip(
+                        selected = selectedCategoryId == category.id,
+                        onClick = { onCategoryClick(category.id) },
+                        label = {
+                            Text("${category.icon.toCategoryEmoji()} ${category.name}")
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(4 - rowCategories.size) {
+                    Column(modifier = Modifier.weight(1f)) {}
+                }
             }
         }
     }

@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.core.model.formatLedgerTime
+import com.sishijiuhack.iflow.core.model.toCategoryEmoji
 import com.sishijiuhack.iflow.data.repository.MonthSummary
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import com.sishijiuhack.iflow.domain.model.TransactionType
@@ -283,7 +284,7 @@ private fun TransactionRow(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = "${transaction.categoryIcon.toLedgerCategoryEmoji()} ${transaction.categoryName}",
+                    text = "${transaction.categoryIcon.toCategoryEmoji()} ${transaction.categoryName}",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -330,39 +331,3 @@ private val dateFilterOptions = listOf(
     DateFilterOption(LedgerDateFilter.Last7Days, "近7天"),
     DateFilterOption(LedgerDateFilter.ThisMonth, "本月"),
 )
-
-private fun String?.toLedgerCategoryEmoji(): String {
-    return when (this) {
-        "restaurant" -> "🍽"
-        "directions_car" -> "🚗"
-        "shopping_bag" -> "🛍"
-        "home" -> "🏠"
-        "movie" -> "🎬"
-        "medical_services" -> "💊"
-        "swap_horiz" -> "↔"
-        "phone" -> "📱"
-        "school" -> "🎓"
-        "checkroom" -> "👕"
-        "spa" -> "💄"
-        "groups" -> "👥"
-        "flight" -> "✈"
-        "pets" -> "🐾"
-        "child_care" -> "🧸"
-        "chair" -> "🛋"
-        "devices" -> "💻"
-        "fitness_center" -> "🏃"
-        "health_and_safety" -> "🛡"
-        "receipt_long" -> "🧾"
-        "more_horiz" -> "•••"
-        "payments" -> "💼"
-        "redeem" -> "🎁"
-        "work" -> "🧰"
-        "trending_up" -> "📈"
-        "savings" -> "🏦"
-        "card_giftcard" -> "🧧"
-        "undo" -> "↩"
-        "add_circle" -> "➕"
-        null, "" -> "•"
-        else -> this.takeIf { it.length <= 2 } ?: "•"
-    }
-}
