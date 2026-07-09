@@ -180,8 +180,10 @@ fun TransactionFormRoute(
             NumberKeyboard(
                 amountInput = uiState.form.amountInput,
                 onAmountChange = viewModel::setAmount,
-                onDone = viewModel::save,
+                onDone = { viewModel.save(closeAfterSave = true) },
+                onSaveAndContinue = { viewModel.save(closeAfterSave = false) },
                 canSave = uiState.canSave && selectedMode != EntryMode.Transfer,
+                canSaveAndContinue = uiState.canSave && !uiState.isEdit && selectedMode != EntryMode.Transfer,
                 mode = selectedMode,
             )
         }
@@ -434,7 +436,9 @@ private fun NumberKeyboard(
     amountInput: String,
     onAmountChange: (String) -> Unit,
     onDone: () -> Unit,
+    onSaveAndContinue: () -> Unit,
     canSave: Boolean,
+    canSaveAndContinue: Boolean,
     mode: EntryMode,
 ) {
     val rows = listOf(
@@ -476,6 +480,7 @@ private fun NumberKeyboard(
             ) {
                 row.forEach { key ->
                     val isDone = key == "完成"
+                    val isSaveAndContinue = key == "保存再记"
                     Surface(
                         color = when {
                             isDone -> mode.tintColor()
@@ -485,7 +490,7 @@ private fun NumberKeyboard(
                         onClick = {
                             when (key) {
                                 "完成" -> if (canSave) onDone()
-                                "保存再记" -> if (canSave) onDone()
+                                "保存再记" -> if (canSaveAndContinue) onSaveAndContinue()
                                 "⌫" -> onAmountChange(amountInput.dropLast(1))
                                 "C" -> onAmountChange("")
                                 "÷" -> Unit
@@ -499,7 +504,11 @@ private fun NumberKeyboard(
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = key,
-                                color = if (isDone) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
+                                color = when {
+                                    isDone -> MaterialTheme.colorScheme.onError
+                                    isSaveAndContinue && !canSaveAndContinue -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                },
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = if (isDone) FontWeight.SemiBold else FontWeight.Normal,
                                 textAlign = TextAlign.Center,

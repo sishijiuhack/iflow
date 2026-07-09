@@ -158,7 +158,7 @@ class TransactionFormViewModel(
         updateOccurredAt(updated)
     }
 
-    fun save() {
+    fun save(closeAfterSave: Boolean = true) {
         val form = formState.value
         val amountCents = MoneyExpression.evaluateCents(form.amountInput) ?: return
         val occurredAt = parseEditableTime(form.occurredAtInput) ?: return
@@ -178,7 +178,22 @@ class TransactionFormViewModel(
                     status = form.status,
                 ),
             )
-            saveFinished.value = true
+            if (closeAfterSave || form.id != null) {
+                saveFinished.value = true
+            } else {
+                val now = System.currentTimeMillis()
+                formState.update {
+                    it.copy(
+                        id = null,
+                        amountInput = "",
+                        merchant = "",
+                        note = "",
+                        occurredAt = now,
+                        occurredAtInput = now.formatEditableTime(),
+                        status = TransactionStatus.Confirmed,
+                    )
+                }
+            }
         }
     }
 
