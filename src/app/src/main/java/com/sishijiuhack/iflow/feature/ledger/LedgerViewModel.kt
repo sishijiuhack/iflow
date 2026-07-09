@@ -87,6 +87,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
                 dateFilter = filters.dateFilter,
                 accountId = filters.accountId,
                 categoryId = filters.categoryId,
+                selectedMonth = selectedMonth,
             ),
         )
     }

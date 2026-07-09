@@ -5,6 +5,7 @@ import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 enum class LedgerTypeFilter {
@@ -27,18 +28,21 @@ fun filterTransactions(
     dateFilter: LedgerDateFilter = LedgerDateFilter.All,
     accountId: Long? = null,
     categoryId: Long? = null,
+    selectedMonth: YearMonth? = null,
     nowMillis: Long = System.currentTimeMillis(),
     zoneId: ZoneId = ZoneId.systemDefault(),
 ): List<TransactionListItem> {
     val normalizedQuery = query.normalizeLedgerSearchQuery()
     val dateRange = dateFilter.toMillisRange(nowMillis, zoneId)
+    val monthRange = selectedMonth?.toMillisRange(zoneId)
     return transactions.filter { transaction ->
         val matchesType = when (typeFilter) {
             LedgerTypeFilter.All -> true
             LedgerTypeFilter.Expense -> transaction.type == TransactionType.Expense
             LedgerTypeFilter.Income -> transaction.type == TransactionType.Income
         }
-        val matchesDate = dateRange == null || transaction.occurredAt in dateRange
+        val matchesDate = (dateRange == null || transaction.occurredAt in dateRange) &&
+            (monthRange == null || transaction.occurredAt in monthRange)
         val matchesAccount = accountId == null || transaction.accountId == accountId
         val matchesCategory = categoryId == null || transaction.categoryId == categoryId
         val matchesQuery = normalizedQuery.isBlank() ||
@@ -53,6 +57,12 @@ fun filterTransactions(
             ).any { it.contains(normalizedQuery, ignoreCase = true) }
         matchesType && matchesDate && matchesAccount && matchesCategory && matchesQuery
     }
+}
+
+private fun YearMonth.toMillisRange(zoneId: ZoneId): LongRange {
+    val start = atDay(1).startMillis(zoneId)
+    val endExclusive = plusMonths(1).atDay(1).startMillis(zoneId)
+    return start..<endExclusive
 }
 
 private fun String.normalizeLedgerSearchQuery(): String {

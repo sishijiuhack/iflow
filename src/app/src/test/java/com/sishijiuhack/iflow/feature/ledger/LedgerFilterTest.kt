@@ -5,6 +5,7 @@ import com.sishijiuhack.iflow.domain.model.TransactionSource
 import com.sishijiuhack.iflow.domain.model.TransactionStatus
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.LocalDateTime
+import java.time.YearMonth
 import java.time.ZoneOffset
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -170,6 +171,36 @@ class LedgerFilterTest {
         )
 
         assertEquals(listOf(1L, 2L), result.map { it.id })
+    }
+
+    @Test
+    fun filterTransactions_filtersBySelectedMonth() {
+        val transactions = sampleTransactions + sampleTransaction(3L, millis(2026, 8, 1, 9, 0))
+
+        val result = filterTransactions(
+            transactions = transactions,
+            query = "",
+            typeFilter = LedgerTypeFilter.All,
+            selectedMonth = YearMonth.of(2026, 7),
+            zoneId = ZoneOffset.UTC,
+        )
+
+        assertEquals(listOf(1L, 2L), result.map { it.id })
+    }
+
+    @Test
+    fun filterTransactions_combinesSelectedMonthAndQuery() {
+        val transactions = sampleTransactions + sampleTransaction(3L, millis(2026, 8, 1, 9, 0))
+
+        val result = filterTransactions(
+            transactions = transactions,
+            query = "咖啡",
+            typeFilter = LedgerTypeFilter.All,
+            selectedMonth = YearMonth.of(2026, 8),
+            zoneId = ZoneOffset.UTC,
+        )
+
+        assertEquals(listOf(3L), result.map { it.id })
     }
 
     @Test
