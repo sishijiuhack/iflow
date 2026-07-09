@@ -72,6 +72,7 @@ fun TransactionFormRoute(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showAccountPicker by remember { mutableStateOf(false) }
+    var showTagPicker by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
 
     LaunchedEffect(uiState.saveFinished) {
@@ -134,6 +135,17 @@ fun TransactionFormRoute(
         )
     }
 
+    if (showTagPicker) {
+        TagPickerDialog(
+            selectedTag = uiState.form.tag,
+            onDismiss = { showTagPicker = false },
+            onTagSelected = { tag ->
+                viewModel.setTag(tag)
+                showTagPicker = false
+            },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -179,7 +191,9 @@ fun TransactionFormRoute(
             TransactionActionChips(
                 mode = selectedMode,
                 selectedAccountName = uiState.accounts.firstOrNull { it.id == uiState.form.accountId }?.name,
+                selectedTag = uiState.form.tag,
                 onAccountClick = { showAccountPicker = true },
+                onTagClick = { showTagPicker = true },
             )
 
             AmountInputCard(
@@ -301,26 +315,29 @@ private fun TypeSegment(
 private fun TransactionActionChips(
     mode: EntryMode,
     selectedAccountName: String?,
+    selectedTag: String,
     onAccountClick: () -> Unit,
+    onTagClick: () -> Unit,
 ) {
+    val tagText = selectedTag.takeIf { it.isNotBlank() }?.let { "#$it" } ?: "标签"
     val chips = when (mode) {
         EntryMode.Expense -> listOf(
             ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
             ActionChipSpec("报销", "○", null),
             ActionChipSpec("优惠", "🎁", null),
             ActionChipSpec("图片", null, Icons.Outlined.Image),
-            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+            ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
         )
         EntryMode.Income -> listOf(
             ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
             ActionChipSpec("图片", null, Icons.Outlined.Image),
-            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+            ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
             ActionChipSpec("标记", "★", null),
         )
         EntryMode.Transfer -> listOf(
             ActionChipSpec("优惠", "🎁", null),
             ActionChipSpec("图片", null, Icons.Outlined.Image),
-            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+            ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
             ActionChipSpec("手续费", "¥", null),
         )
     }
@@ -435,6 +452,106 @@ private fun AccountPickerDialog(
                 Text("取消")
             }
         },
+    )
+}
+
+@Composable
+private fun TagPickerDialog(
+    selectedTag: String,
+    onDismiss: () -> Unit,
+    onTagSelected: (String) -> Unit,
+) {
+    var tagInput by remember(selectedTag) { mutableStateOf(selectedTag) }
+    val normalizedTag = tagInput.trim().removePrefix("#")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("×", style = MaterialTheme.typography.headlineSmall)
+                }
+                Text(
+                    text = "选择标签",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                TextButton(
+                    onClick = { onTagSelected(normalizedTag) },
+                    enabled = normalizedTag.isNotBlank(),
+                ) {
+                    Text("完成")
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = tagInput,
+                    onValueChange = { tagInput = it.take(16) },
+                    placeholder = { Text("搜索或创建标签") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (normalizedTag.isBlank()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = "暂无标签",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = "试试在搜索框中创建新标签",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                } else {
+                    Surface(
+                        color = Color(0xFFEAF3FF),
+                        shape = RoundedCornerShape(18.dp),
+                        onClick = { onTagSelected(normalizedTag) },
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "#$normalizedTag",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = if (selectedTag == normalizedTag) "当前" else "创建",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+                Text(
+                    text = "标签管理 >",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {},
     )
 }
 

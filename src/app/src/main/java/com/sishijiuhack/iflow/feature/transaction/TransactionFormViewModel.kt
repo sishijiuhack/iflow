@@ -129,6 +129,10 @@ class TransactionFormViewModel(
         formState.update { it.copy(note = value) }
     }
 
+    fun setTag(value: String) {
+        formState.update { it.copy(tag = value.trim().removePrefix("#")) }
+    }
+
     fun setOccurredAtInput(value: String) {
         formState.update { it.copy(occurredAtInput = value) }
     }
@@ -173,7 +177,7 @@ class TransactionFormViewModel(
                     categoryId = categoryId,
                     accountId = accountId,
                     merchant = form.merchant,
-                    note = form.note,
+                    note = form.note.withTag(form.tag),
                     occurredAt = occurredAt,
                     status = form.status,
                 ),
@@ -188,6 +192,7 @@ class TransactionFormViewModel(
                         amountInput = "",
                         merchant = "",
                         note = "",
+                        tag = "",
                         occurredAt = now,
                         occurredAtInput = now.formatEditableTime(),
                         status = TransactionStatus.Confirmed,
@@ -239,6 +244,7 @@ data class TransactionFormState(
     val accountId: Long? = null,
     val merchant: String = "",
     val note: String = "",
+    val tag: String = "",
     val occurredAt: Long = System.currentTimeMillis(),
     val occurredAtInput: String = occurredAt.formatEditableTime(),
     val status: TransactionStatus = TransactionStatus.Confirmed,
@@ -253,5 +259,17 @@ data class TransactionFormState(
             categoryId = categoryId ?: categories.firstOrNull()?.id,
             accountId = accountId ?: defaultAccount?.id,
         )
+    }
+}
+
+private fun String.withTag(tag: String): String {
+    val normalizedTag = tag.trim().removePrefix("#")
+    if (normalizedTag.isBlank()) return this
+    val tagText = "#$normalizedTag"
+    val trimmedNote = trim()
+    return when {
+        trimmedNote.isBlank() -> tagText
+        trimmedNote.contains(tagText) -> trimmedNote
+        else -> "$trimmedNote $tagText"
     }
 }
