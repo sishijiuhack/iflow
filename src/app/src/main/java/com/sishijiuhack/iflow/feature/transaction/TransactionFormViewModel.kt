@@ -54,6 +54,23 @@ class TransactionFormViewModel(
         val amountError = normalizedForm.amountInput
             .takeIf { it.isNotBlank() && MoneyExpression.evaluateCents(it) == null }
             ?.let { "请输入有效金额" }
+        val baseAmountCents = MoneyExpression.evaluateCents(normalizedForm.amountInput)
+        val discountCents = normalizedForm.discountInput
+            .takeIf { it.isNotBlank() }
+            ?.let { MoneyExpression.evaluateCents(it) }
+        val feeCents = normalizedForm.feeInput
+            .takeIf { it.isNotBlank() }
+            ?.let { MoneyExpression.evaluateCents(it) }
+        val discountError = normalizedForm.discountInput.takeIf { it.isNotBlank() }?.let {
+            when {
+                discountCents == null -> "请输入有效优惠金额"
+                baseAmountCents != null && discountCents >= baseAmountCents -> "优惠金额需小于原金额"
+                else -> null
+            }
+        }
+        val feeError = normalizedForm.feeInput.takeIf { it.isNotBlank() }?.let {
+            if (feeCents == null) "请输入有效手续费" else null
+        }
         val timeError = normalizedForm.occurredAtInput
             .takeIf { it.isNotBlank() && parseEditableTime(it) == null }
             ?.let { "请输入有效时间" }
@@ -64,11 +81,15 @@ class TransactionFormViewModel(
             accounts = accounts,
             isEdit = transactionId != null,
             amountError = amountError,
+            discountError = discountError,
+            feeError = feeError,
             timeError = timeError,
             pickerTimeMillis = parsedTime ?: normalizedForm.occurredAt,
             canSave = amountError == null &&
+                discountError == null &&
+                feeError == null &&
                 timeError == null &&
-                MoneyExpression.evaluateCents(normalizedForm.amountInput) != null &&
+                baseAmountCents != null &&
                 parsedTime != null &&
                 normalizedForm.categoryId != null &&
                 normalizedForm.accountId != null,
@@ -133,6 +154,30 @@ class TransactionFormViewModel(
         formState.update { it.copy(tag = value.trim().removePrefix("#")) }
     }
 
+    fun setReimbursable(value: Boolean) {
+        formState.update { it.copy(reimbursable = value) }
+    }
+
+    fun setMarked(value: Boolean) {
+        formState.update { it.copy(marked = value) }
+    }
+
+    fun setDiscount(value: String) {
+        if (MoneyExpression.isPotential(value)) {
+            formState.update { it.copy(discountInput = value) }
+        }
+    }
+
+    fun setFee(value: String) {
+        if (MoneyExpression.isPotential(value)) {
+            formState.update { it.copy(feeInput = value) }
+        }
+    }
+
+    fun setAttachment(value: String) {
+        formState.update { it.copy(attachmentLabel = value.trim()) }
+    }
+
     fun setOccurredAtInput(value: String) {
         formState.update { it.copy(occurredAtInput = value) }
     }
@@ -164,7 +209,9 @@ class TransactionFormViewModel(
 
     fun save(closeAfterSave: Boolean = true) {
         val form = formState.value
-        val amountCents = MoneyExpression.evaluateCents(form.amountInput) ?: return
+        val baseAmountCents = MoneyExpression.evaluateCents(form.amountInput) ?: return
+        val discountCents = form.discountInput.takeIf { it.isNotBlank() }?.let { MoneyExpression.evaluateCents(it) } ?: 0L
+        val amountCents = (baseAmountCents - discountCents).takeIf { it > 0L } ?: return
         val occurredAt = parseEditableTime(form.occurredAtInput) ?: return
         val categoryId = form.categoryId ?: return
         val accountId = form.accountId ?: return
@@ -177,7 +224,7 @@ class TransactionFormViewModel(
                     categoryId = categoryId,
                     accountId = accountId,
                     merchant = form.merchant,
-                    note = form.note.withTag(form.tag),
+                    note = form.note.withMeta(form),
                     occurredAt = occurredAt,
                     status = form.status,
                 ),
@@ -193,6 +240,11 @@ class TransactionFormViewModel(
                         merchant = "",
                         note = "",
                         tag = "",
+                        reimbursable = false,
+                        marked = false,
+                        discountInput = "",
+                        feeInput = "",
+                        attachmentLabel = "",
                         occurredAt = now,
                         occurredAtInput = now.formatEditableTime(),
                         status = TransactionStatus.Confirmed,
@@ -230,6 +282,8 @@ data class TransactionFormUiState(
     val accounts: List<AccountEntity> = emptyList(),
     val isEdit: Boolean = false,
     val amountError: String? = null,
+    val discountError: String? = null,
+    val feeError: String? = null,
     val timeError: String? = null,
     val pickerTimeMillis: Long = System.currentTimeMillis(),
     val canSave: Boolean = false,
@@ -245,6 +299,11 @@ data class TransactionFormState(
     val merchant: String = "",
     val note: String = "",
     val tag: String = "",
+    val reimbursable: Boolean = false,
+    val marked: Boolean = false,
+    val discountInput: String = "",
+    val feeInput: String = "",
+    val attachmentLabel: String = "",
     val occurredAt: Long = System.currentTimeMillis(),
     val occurredAtInput: String = occurredAt.formatEditableTime(),
     val status: TransactionStatus = TransactionStatus.Confirmed,
@@ -262,14 +321,15 @@ data class TransactionFormState(
     }
 }
 
-private fun String.withTag(tag: String): String {
-    val normalizedTag = tag.trim().removePrefix("#")
-    if (normalizedTag.isBlank()) return this
-    val tagText = "#$normalizedTag"
+private fun String.withMeta(form: TransactionFormState): String {
+    val parts = mutableListOf<String>()
     val trimmedNote = trim()
-    return when {
-        trimmedNote.isBlank() -> tagText
-        trimmedNote.contains(tagText) -> trimmedNote
-        else -> "$trimmedNote $tagText"
-    }
+    if (trimmedNote.isNotBlank()) parts += trimmedNote
+    form.tag.trim().removePrefix("#").takeIf { it.isNotBlank() }?.let { parts += "#$it" }
+    if (form.reimbursable) parts += "#报销"
+    if (form.marked) parts += "#标记"
+    form.discountInput.trim().takeIf { it.isNotBlank() }?.let { parts += "优惠¥$it" }
+    form.feeInput.trim().takeIf { it.isNotBlank() }?.let { parts += "手续费¥$it" }
+    form.attachmentLabel.trim().takeIf { it.isNotBlank() }?.let { parts += "图片:$it" }
+    return parts.distinct().joinToString(" ")
 }

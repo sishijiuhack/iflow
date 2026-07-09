@@ -73,6 +73,9 @@ fun TransactionFormRoute(
     var showTimePicker by remember { mutableStateOf(false) }
     var showAccountPicker by remember { mutableStateOf(false) }
     var showTagPicker by remember { mutableStateOf(false) }
+    var showDiscountInput by remember { mutableStateOf(false) }
+    var showAttachmentInput by remember { mutableStateOf(false) }
+    var showFeeInput by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
 
     LaunchedEffect(uiState.saveFinished) {
@@ -146,6 +149,36 @@ fun TransactionFormRoute(
         )
     }
 
+    if (showDiscountInput) {
+        FeatureAmountDialog(
+            title = "优惠",
+            value = uiState.form.discountInput,
+            error = uiState.discountError,
+            placeholder = "输入优惠金额",
+            onValueChange = viewModel::setDiscount,
+            onDismiss = { showDiscountInput = false },
+        )
+    }
+
+    if (showAttachmentInput) {
+        AttachmentDialog(
+            value = uiState.form.attachmentLabel,
+            onValueChange = viewModel::setAttachment,
+            onDismiss = { showAttachmentInput = false },
+        )
+    }
+
+    if (showFeeInput) {
+        FeatureAmountDialog(
+            title = "手续费",
+            value = uiState.form.feeInput,
+            error = uiState.feeError,
+            placeholder = "输入手续费金额",
+            onValueChange = viewModel::setFee,
+            onDismiss = { showFeeInput = false },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -192,8 +225,18 @@ fun TransactionFormRoute(
                 mode = selectedMode,
                 selectedAccountName = uiState.accounts.firstOrNull { it.id == uiState.form.accountId }?.name,
                 selectedTag = uiState.form.tag,
+                reimbursable = uiState.form.reimbursable,
+                marked = uiState.form.marked,
+                discountInput = uiState.form.discountInput,
+                attachmentLabel = uiState.form.attachmentLabel,
+                feeInput = uiState.form.feeInput,
                 onAccountClick = { showAccountPicker = true },
                 onTagClick = { showTagPicker = true },
+                onReimbursableClick = { viewModel.setReimbursable(!uiState.form.reimbursable) },
+                onMarkedClick = { viewModel.setMarked(!uiState.form.marked) },
+                onDiscountClick = { showDiscountInput = true },
+                onAttachmentClick = { showAttachmentInput = true },
+                onFeeClick = { showFeeInput = true },
             )
 
             AmountInputCard(
@@ -316,29 +359,42 @@ private fun TransactionActionChips(
     mode: EntryMode,
     selectedAccountName: String?,
     selectedTag: String,
+    reimbursable: Boolean,
+    marked: Boolean,
+    discountInput: String,
+    attachmentLabel: String,
+    feeInput: String,
     onAccountClick: () -> Unit,
     onTagClick: () -> Unit,
+    onReimbursableClick: () -> Unit,
+    onMarkedClick: () -> Unit,
+    onDiscountClick: () -> Unit,
+    onAttachmentClick: () -> Unit,
+    onFeeClick: () -> Unit,
 ) {
     val tagText = selectedTag.takeIf { it.isNotBlank() }?.let { "#$it" } ?: "标签"
+    val discountText = discountInput.takeIf { it.isNotBlank() }?.let { "优惠 ¥$it" } ?: "优惠"
+    val attachmentText = attachmentLabel.takeIf { it.isNotBlank() } ?: "图片"
+    val feeText = feeInput.takeIf { it.isNotBlank() }?.let { "手续费 ¥$it" } ?: "手续费"
     val chips = when (mode) {
         EntryMode.Expense -> listOf(
             ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
-            ActionChipSpec("报销", "○", null),
-            ActionChipSpec("优惠", "🎁", null),
-            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec(if (reimbursable) "待报销" else "报销", "○", null, onReimbursableClick, reimbursable),
+            ActionChipSpec(discountText, "🎁", null, onDiscountClick, discountInput.isNotBlank()),
+            ActionChipSpec(attachmentText, null, Icons.Outlined.Image, onAttachmentClick, attachmentLabel.isNotBlank()),
             ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
         )
         EntryMode.Income -> listOf(
             ActionChipSpec(selectedAccountName ?: "选择账户", "💳", null, onAccountClick),
-            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec(attachmentText, null, Icons.Outlined.Image, onAttachmentClick, attachmentLabel.isNotBlank()),
             ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
-            ActionChipSpec("标记", "★", null),
+            ActionChipSpec(if (marked) "已标记" else "标记", "★", null, onMarkedClick, marked),
         )
         EntryMode.Transfer -> listOf(
-            ActionChipSpec("优惠", "🎁", null),
-            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec(discountText, "🎁", null, onDiscountClick, discountInput.isNotBlank()),
+            ActionChipSpec(attachmentText, null, Icons.Outlined.Image, onAttachmentClick, attachmentLabel.isNotBlank()),
             ActionChipSpec(tagText, null, Icons.AutoMirrored.Outlined.Label, onTagClick),
-            ActionChipSpec("手续费", "¥", null),
+            ActionChipSpec(feeText, "¥", null, onFeeClick, feeInput.isNotBlank()),
         )
     }
     Row(
@@ -348,20 +404,26 @@ private fun TransactionActionChips(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         chips.forEach { chip ->
-            ActionPill(text = chip.text, iconText = chip.iconText, icon = chip.icon, onClick = chip.onClick)
+            ActionPill(
+                text = chip.text,
+                iconText = chip.iconText,
+                icon = chip.icon,
+                selected = chip.selected,
+                onClick = chip.onClick,
+            )
         }
     }
 }
-
 @Composable
 private fun ActionPill(
     text: String,
     iconText: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    selected: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = if (selected) Color(0xFFEAF3FF) else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
@@ -386,6 +448,7 @@ private fun ActionPill(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -552,6 +615,114 @@ private fun TagPickerDialog(
             }
         },
         confirmButton = {},
+    )
+}
+
+@Composable
+private fun FeatureAmountDialog(
+    title: String,
+    value: String,
+    error: String?,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    placeholder = { Text(placeholder) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Text(
+                    text = "清空金额即可取消该项。",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("完成")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onValueChange("")
+                    onDismiss()
+                },
+            ) {
+                Text("清空")
+            }
+        },
+    )
+}
+
+@Composable
+private fun AttachmentDialog(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "图片",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { onValueChange(it.take(24)) },
+                    placeholder = { Text("添加图片说明") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = "当前先记录图片占位，不额外申请相册权限。",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("完成")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onValueChange("")
+                    onDismiss()
+                },
+            ) {
+                Text("清空")
+            }
+        },
     )
 }
 
@@ -823,6 +994,7 @@ private data class ActionChipSpec(
     val iconText: String?,
     val icon: androidx.compose.ui.graphics.vector.ImageVector?,
     val onClick: (() -> Unit)? = null,
+    val selected: Boolean = false,
 )
 
 private fun accountIcon(account: AccountEntity): String {
