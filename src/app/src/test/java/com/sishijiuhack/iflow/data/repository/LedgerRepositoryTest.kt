@@ -104,6 +104,24 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observePendingCount_updatesAfterConfirmAndDelete() = runTest {
+        val firstId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-pending-count-1"))
+        val secondId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-pending-count-2"))
+
+        assertTrue(firstId != null)
+        assertTrue(secondId != null)
+        assertEquals(2, repository.observePendingCount().first())
+
+        repository.confirmPendingTransaction(firstId!!)
+
+        assertEquals(1, repository.observePendingCount().first())
+
+        repository.softDeleteTransaction(secondId!!)
+
+        assertEquals(0, repository.observePendingCount().first())
+    }
+
+    @Test
     fun confirmPendingTransaction_doesNotRestoreDeletedTransaction() = runTest {
         val insertedId = repository.savePendingNotificationTransaction(sampleParsed("fingerprint-confirm-deleted"))
 
