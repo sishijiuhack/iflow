@@ -12,12 +12,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.MoneyCents
 import com.sishijiuhack.iflow.core.model.formatLedgerTime
+import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import com.sishijiuhack.iflow.domain.model.TransactionType
 
 @Composable
@@ -34,6 +37,9 @@ fun LedgerRoute(
     viewModel: LedgerViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dateGroups = remember(uiState.transactions) {
+        groupTransactionsByDate(uiState.transactions)
+    }
 
     Column(
         modifier = Modifier
@@ -131,43 +137,83 @@ fun LedgerRoute(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(uiState.transactions, key = { it.id }) { transaction ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onEditTransaction(transaction.id) }
-                            .padding(vertical = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = transaction.categoryName,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            val sign = if (transaction.type == TransactionType.Income) "+" else "-"
-                            Text(
-                                text = sign + MoneyCents(transaction.amountCents).format(),
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
+                dateGroups.forEach { group ->
+                    item(key = "date-${group.label}") {
                         Text(
-                            text = "${transaction.accountName} · ${transaction.occurredAt.formatLedgerTime()}",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = group.label,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
                         )
-                        Text(
-                            text = transaction.merchant ?: transaction.note ?: "无备注",
-                            style = MaterialTheme.typography.bodyMedium,
+                    }
+                    items(group.transactions, key = { it.id }) { transaction ->
+                        TransactionRow(
+                            transaction = transaction,
+                            onClick = { onEditTransaction(transaction.id) },
+                            onDelete = { viewModel.deleteTransaction(transaction.id) },
                         )
-                        TextButton(onClick = { viewModel.deleteTransaction(transaction.id) }) {
-                            Text("删除")
-                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransactionRow(
+    transaction: TransactionListItem,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text = transaction.categoryName,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = transaction.merchant ?: transaction.note ?: "无备注",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            val sign = if (transaction.type == TransactionType.Income) "+" else "-"
+            val amountColor = if (transaction.type == TransactionType.Income) {
+                MaterialTheme.colorScheme.tertiary
+            } else {
+                MaterialTheme.colorScheme.error
+            }
+            Text(
+                text = sign + MoneyCents(transaction.amountCents).format(),
+                color = amountColor,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "${transaction.accountName} · ${transaction.occurredAt.formatLedgerTime()}",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            TextButton(onClick = onDelete) {
+                Text("删除")
+            }
+        }
+        HorizontalDivider()
     }
 }
 

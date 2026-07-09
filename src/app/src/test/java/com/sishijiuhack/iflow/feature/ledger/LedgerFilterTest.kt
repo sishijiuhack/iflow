@@ -172,6 +172,46 @@ class LedgerFilterTest {
         assertEquals(listOf(1L, 2L), result.map { it.id })
     }
 
+    @Test
+    fun groupTransactionsByDate_labelsRecentAndOlderSections() {
+        val transactions = listOf(
+            sampleTransaction(1L, millis(2026, 7, 8, 9, 30)),
+            sampleTransaction(2L, millis(2026, 7, 7, 18, 0)),
+            sampleTransaction(3L, millis(2026, 7, 6, 8, 0)),
+            sampleTransaction(4L, millis(2026, 7, 1, 12, 0)),
+            sampleTransaction(5L, millis(2025, 12, 31, 12, 0)),
+        )
+
+        val result = groupTransactionsByDate(
+            transactions = transactions,
+            nowMillis = fixedNow,
+            zoneId = ZoneOffset.UTC,
+        )
+
+        assertEquals(
+            listOf("今天", "昨天", "周一", "7月1日", "2025年12月31日"),
+            result.map { it.label },
+        )
+    }
+
+    @Test
+    fun groupTransactionsByDate_preservesTransactionsWithinEachDay() {
+        val transactions = listOf(
+            sampleTransaction(1L, millis(2026, 7, 8, 21, 0)),
+            sampleTransaction(2L, millis(2026, 7, 8, 9, 0)),
+            sampleTransaction(3L, millis(2026, 7, 7, 9, 0)),
+        )
+
+        val result = groupTransactionsByDate(
+            transactions = transactions,
+            nowMillis = fixedNow,
+            zoneId = ZoneOffset.UTC,
+        )
+
+        assertEquals(listOf(1L, 2L), result.first().transactions.map { it.id })
+        assertEquals(listOf(3L), result.last().transactions.map { it.id })
+    }
+
     private val fixedNow = millis(2026, 7, 8, 12, 0)
 
     private val sampleTransactions = listOf(
@@ -204,6 +244,26 @@ class LedgerFilterTest {
             status = TransactionStatus.Confirmed,
         ),
     )
+
+    private fun sampleTransaction(
+        id: Long,
+        occurredAt: Long,
+    ): TransactionListItem {
+        return TransactionListItem(
+            id = id,
+            type = TransactionType.Expense,
+            amountCents = 1800L,
+            categoryId = 10L,
+            categoryName = "餐饮",
+            accountId = 19L,
+            accountName = "现金",
+            merchant = "咖啡店",
+            note = "早餐",
+            occurredAt = occurredAt,
+            source = TransactionSource.Manual,
+            status = TransactionStatus.Confirmed,
+        )
+    }
 
     private fun millis(
         year: Int,
