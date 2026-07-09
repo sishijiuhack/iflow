@@ -49,8 +49,10 @@ class LedgerRepository(
             val categoryMap = categories.associateBy { it.id }
             val accountMap = accounts.associateBy { it.id }
             transactions.map {
+                val category = categoryMap[it.categoryId]
                 it.toListItem(
-                    categoryName = categoryMap[it.categoryId]?.name ?: "未分类",
+                    categoryName = category?.name ?: "未分类",
+                    categoryIcon = category?.icon,
                     accountName = accountMap[it.accountId]?.name ?: "未知账户",
                 )
             }
@@ -66,8 +68,10 @@ class LedgerRepository(
             val categoryMap = categories.associateBy { it.id }
             val accountMap = accounts.associateBy { it.id }
             transactions.map {
+                val category = categoryMap[it.categoryId]
                 it.toListItem(
-                    categoryName = categoryMap[it.categoryId]?.name ?: "未分类",
+                    categoryName = category?.name ?: "未分类",
+                    categoryIcon = category?.icon,
                     accountName = accountMap[it.accountId]?.name ?: "未知账户",
                 )
             }
@@ -87,8 +91,10 @@ class LedgerRepository(
             val categoryMap = categories.associateBy { it.id }
             val accountMap = accounts.associateBy { it.id }
             transactions.map {
+                val category = categoryMap[it.categoryId]
                 it.toListItem(
-                    categoryName = categoryMap[it.categoryId]?.name ?: "未分类",
+                    categoryName = category?.name ?: "未分类",
+                    categoryIcon = category?.icon,
                     accountName = accountMap[it.accountId]?.name ?: "未知账户",
                 )
             }
@@ -434,6 +440,7 @@ class LedgerRepository(
 
     private fun TransactionEntity.toListItem(
         categoryName: String,
+        categoryIcon: String?,
         accountName: String,
     ): TransactionListItem {
         return TransactionListItem(
@@ -442,6 +449,7 @@ class LedgerRepository(
             amountCents = amountCents,
             categoryId = categoryId,
             categoryName = categoryName,
+            categoryIcon = categoryIcon,
             accountId = accountId,
             accountName = accountName,
             merchant = merchant,
@@ -471,6 +479,7 @@ data class TransactionListItem(
     val amountCents: Long,
     val categoryId: Long,
     val categoryName: String,
+    val categoryIcon: String? = null,
     val accountId: Long,
     val accountName: String,
     val merchant: String?,

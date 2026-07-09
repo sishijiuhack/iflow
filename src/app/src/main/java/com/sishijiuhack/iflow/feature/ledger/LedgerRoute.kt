@@ -283,7 +283,7 @@ private fun TransactionRow(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = transaction.categoryName,
+                    text = "${transaction.categoryIcon.toLedgerCategoryEmoji()} ${transaction.categoryName}",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -330,3 +330,20 @@ private val dateFilterOptions = listOf(
     DateFilterOption(LedgerDateFilter.Last7Days, "近7天"),
     DateFilterOption(LedgerDateFilter.ThisMonth, "本月"),
 )
+
+private fun String?.toLedgerCategoryEmoji(): String {
+    return when (this) {
+        "restaurant" -> "🍽"
+        "directions_car" -> "🚗"
+        "shopping_bag" -> "🛍"
+        "home" -> "🏠"
+        "movie" -> "🎬"
+        "medical_services" -> "💊"
+        "swap_horiz" -> "↔"
+        "payments" -> "💼"
+        "undo" -> "↩"
+        "add_circle" -> "➕"
+        null, "" -> "•"
+        else -> this.takeIf { it.length <= 2 } ?: "•"
+    }
+}

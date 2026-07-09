@@ -104,6 +104,26 @@ class LedgerRepositoryTest {
     }
 
     @Test
+    fun observeTransactions_includesCategoryIcon() = runTest {
+        repository.ensureDefaultData()
+        val category = database.categoryDao().listByType(TransactionType.Expense).first { it.name == "餐饮" }
+        val accountId = database.accountDao().listAll().first().id
+        val insertedId = repository.saveManualTransaction(
+            sampleTransaction(
+                amountCents = 1200L,
+                categoryId = category.id,
+                accountId = accountId,
+                occurredAt = 1_000L,
+            ),
+        )
+
+        val transaction = repository.observeTransactions().first().first { it.id == insertedId }
+
+        assertEquals("餐饮", transaction.categoryName)
+        assertEquals("restaurant", transaction.categoryIcon)
+    }
+
+    @Test
     fun observeAccountBalances_sumsConfirmedTransactionsByAccount() = runTest {
         repository.ensureDefaultData()
         val expenseCategoryId = database.categoryDao().listByType(TransactionType.Expense).first().id
