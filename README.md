@@ -13,6 +13,14 @@ The app focuses on a quiet daily workflow:
 - Settings for notification capture, auto-confirm behavior, and the default account.
 - Local JSON and CSV file export through the Android document picker.
 
+## Current Status
+
+- Version: `0.1.0`
+- Package: `com.sishijiuhack.iflow`
+- Target platform: Android native, `minSdk 26`, `targetSdk 35`
+- Primary target device profile: Xiaomi 17 Pro / HyperOS
+- Current scope: first usable local-first MVP; not a cloud sync or multi-user finance product
+
 ## Privacy
 
 iFlow is designed as a private local ledger. Data is stored on the device by default. The app does not upload ledger data, does not use a cloud backend, and does not include third-party analytics SDKs.
@@ -42,6 +50,13 @@ With JDK 17 and Android SDK 35 available:
 ```powershell
 cd src
 .\gradlew.bat testDebugUnitTest assembleDebug
+```
+
+Full local verification used during development:
+
+```powershell
+cd src
+.\gradlew.bat testDebugUnitTest assembleDebug assembleDebugAndroidTest --stacktrace
 ```
 
 The debug APK is generated at:
