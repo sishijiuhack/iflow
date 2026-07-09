@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sishijiuhack.iflow.core.model.toCategoryEmoji
+import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.domain.model.TransactionType
 import java.time.Instant
@@ -68,10 +69,17 @@ fun TransactionFormRoute(
     }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
 
     LaunchedEffect(uiState.saveFinished) {
         if (uiState.saveFinished) {
             onClose()
+        }
+    }
+
+    LaunchedEffect(uiState.form.type) {
+        if (selectedMode != EntryMode.Transfer) {
+            selectedMode = uiState.form.type.toEntryMode()
         }
     }
 
@@ -120,19 +128,30 @@ fun TransactionFormRoute(
     ) {
         TransactionSheetHeader(
             isEdit = uiState.isEdit,
-            selectedType = uiState.form.type,
-            onTypeSelected = viewModel::setType,
+            selectedMode = selectedMode,
+            onModeSelected = { mode ->
+                selectedMode = mode
+                when (mode) {
+                    EntryMode.Expense -> viewModel.setType(TransactionType.Expense)
+                    EntryMode.Income -> viewModel.setType(TransactionType.Income)
+                    EntryMode.Transfer -> Unit
+                }
+            },
             onClose = onClose,
         )
 
-        CategoryGrid(
-            categories = uiState.categories,
-            selectedCategoryId = uiState.form.categoryId,
-            onCategoryClick = viewModel::setCategory,
-        )
+        if (selectedMode == EntryMode.Transfer) {
+            TransferAccountCards(accounts = uiState.accounts)
+        } else {
+            CategoryGrid(
+                categories = uiState.categories,
+                selectedCategoryId = uiState.form.categoryId,
+                onCategoryClick = viewModel::setCategory,
+            )
+        }
 
         TransactionActionChips(
-            accounts = uiState.accounts.map { it.name },
+            mode = selectedMode,
         )
 
         AmountInputCard(
@@ -144,14 +163,15 @@ fun TransactionFormRoute(
             timeError = uiState.timeError,
             onDateClick = { showDatePicker = true },
             onTimeClick = { showTimePicker = true },
+            mode = selectedMode,
         )
 
         NumberKeyboard(
             amountInput = uiState.form.amountInput,
             onAmountChange = viewModel::setAmount,
             onDone = viewModel::save,
-            canSave = uiState.canSave,
-            type = uiState.form.type,
+            canSave = uiState.canSave && selectedMode != EntryMode.Transfer,
+            mode = selectedMode,
         )
 
         Spacer(modifier = Modifier.height(96.dp))
@@ -161,8 +181,8 @@ fun TransactionFormRoute(
 @Composable
 private fun TransactionSheetHeader(
     isEdit: Boolean,
-    selectedType: TransactionType,
-    onTypeSelected: (TransactionType) -> Unit,
+    selectedMode: EntryMode,
+    onModeSelected: (EntryMode) -> Unit,
     onClose: () -> Unit,
 ) {
     Row(
@@ -196,19 +216,18 @@ private fun TransactionSheetHeader(
             ) {
                 TypeSegment(
                     text = "支出",
-                    selected = selectedType == TransactionType.Expense,
-                    onClick = { onTypeSelected(TransactionType.Expense) },
+                    selected = selectedMode == EntryMode.Expense,
+                    onClick = { onModeSelected(EntryMode.Expense) },
                 )
                 TypeSegment(
                     text = "收入",
-                    selected = selectedType == TransactionType.Income,
-                    onClick = { onTypeSelected(TransactionType.Income) },
+                    selected = selectedMode == EntryMode.Income,
+                    onClick = { onModeSelected(EntryMode.Income) },
                 )
                 TypeSegment(
                     text = "转账",
-                    selected = false,
-                    enabled = false,
-                    onClick = {},
+                    selected = selectedMode == EntryMode.Transfer,
+                    onClick = { onModeSelected(EntryMode.Transfer) },
                 )
             }
         }
@@ -251,20 +270,38 @@ private fun TypeSegment(
 
 @Composable
 private fun TransactionActionChips(
-    accounts: List<String>,
+    mode: EntryMode,
 ) {
-    val accountLabel = accounts.firstOrNull()?.let { "选择账户" } ?: "选择账户"
+    val chips = when (mode) {
+        EntryMode.Expense -> listOf(
+            ActionChipSpec("选择账户", "💳", null),
+            ActionChipSpec("报销", "○", null),
+            ActionChipSpec("优惠", "🎁", null),
+            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+        )
+        EntryMode.Income -> listOf(
+            ActionChipSpec("选择账户", "💳", null),
+            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+            ActionChipSpec("标记", "★", null),
+        )
+        EntryMode.Transfer -> listOf(
+            ActionChipSpec("优惠", "🎁", null),
+            ActionChipSpec("图片", null, Icons.Outlined.Image),
+            ActionChipSpec("标签", null, Icons.AutoMirrored.Outlined.Label),
+            ActionChipSpec("手续费", "¥", null),
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        ActionPill(text = accountLabel, iconText = "💳")
-        ActionPill(text = "报销", iconText = "○")
-        ActionPill(text = "优惠", iconText = "🎁")
-        ActionPill(text = "图片", icon = Icons.Outlined.Image)
-        ActionPill(text = "标签", icon = Icons.AutoMirrored.Outlined.Label)
+        chips.forEach { chip ->
+            ActionPill(text = chip.text, iconText = chip.iconText, icon = chip.icon)
+        }
     }
 }
 
@@ -313,6 +350,7 @@ private fun AmountInputCard(
     timeError: String?,
     onDateClick: () -> Unit,
     onTimeClick: () -> Unit,
+    mode: EntryMode,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -325,7 +363,7 @@ private fun AmountInputCard(
         ) {
             Text(
                 text = "¥" + (amountInput.ifBlank { "0.00" }),
-                color = MaterialTheme.colorScheme.error,
+                color = mode.tintColor(),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -387,7 +425,7 @@ private fun NumberKeyboard(
     onAmountChange: (String) -> Unit,
     onDone: () -> Unit,
     canSave: Boolean,
-    type: TransactionType,
+    mode: EntryMode,
 ) {
     val rows = listOf(
         listOf("1", "2", "3", "⌫"),
@@ -405,8 +443,7 @@ private fun NumberKeyboard(
                     val isDone = key == "完成"
                     Surface(
                         color = when {
-                            isDone && type == TransactionType.Income -> MaterialTheme.colorScheme.secondary
-                            isDone -> MaterialTheme.colorScheme.error
+                            isDone -> mode.tintColor()
                             else -> MaterialTheme.colorScheme.surface
                         },
                         shape = RoundedCornerShape(18.dp),
@@ -440,6 +477,77 @@ private fun NumberKeyboard(
     }
 }
 
+@Composable
+private fun TransferAccountCards(
+    accounts: List<AccountEntity>,
+) {
+    val fromAccount = accounts.firstOrNull()?.name ?: "选择转出账户"
+    val toAccount = accounts.drop(1).firstOrNull()?.name ?: "选择转入账户"
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        TransferAccountCard(
+            label = "转出账户",
+            accountName = fromAccount,
+            iconText = "↑",
+        )
+        TransferAccountCard(
+            label = "转入账户",
+            accountName = toAccount,
+            iconText = "↓",
+        )
+        Text(
+            text = "转账保存流程将在账户模型扩展后启用",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun TransferAccountCard(
+    label: String,
+    accountName: String,
+    iconText: String,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(Color(0xFFEAF3FF), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = iconText,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = label,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = accountName,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+}
+
 private fun appendAmountKey(
     current: String,
     key: String,
@@ -448,6 +556,34 @@ private fun appendAmountKey(
     if (key == "." && current.contains(".")) return
     val next = if (current == "0" && key != ".") key else current + key
     onAmountChange(next)
+}
+
+private data class ActionChipSpec(
+    val text: String,
+    val iconText: String?,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector?,
+)
+
+private enum class EntryMode {
+    Expense,
+    Income,
+    Transfer,
+}
+
+private fun TransactionType.toEntryMode(): EntryMode {
+    return when (this) {
+        TransactionType.Expense -> EntryMode.Expense
+        TransactionType.Income -> EntryMode.Income
+    }
+}
+
+@Composable
+private fun EntryMode.tintColor(): Color {
+    return when (this) {
+        EntryMode.Expense -> MaterialTheme.colorScheme.error
+        EntryMode.Income -> MaterialTheme.colorScheme.secondary
+        EntryMode.Transfer -> MaterialTheme.colorScheme.primary
+    }
 }
 
 @Composable
