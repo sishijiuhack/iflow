@@ -1029,25 +1029,33 @@ private fun AmountInputCard(
                 IFlowTextField(
                     value = note,
                     onValueChange = onNoteChange,
-                    placeholder = { Text("点击填写备注") },
+                    placeholder = {
+                        Text(
+                            text = "点击填写备注",
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    },
+                    trailingIcon = {
+                        Surface(
+                            color = Color.Transparent,
+                            shape = CircleShape,
+                            onClick = onNoteExpandClick,
+                            modifier = Modifier.size(30.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInFull,
+                                    contentDescription = "全屏输入备注",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
-                Surface(
-                    color = Color(0xFFF8F9FA),
-                    shape = RoundedCornerShape(18.dp),
-                    onClick = onNoteExpandClick,
-                    modifier = Modifier.size(42.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.OpenInFull,
-                            contentDescription = "全屏输入备注",
-                            modifier = Modifier.size(17.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
                 Surface(
                     color = Color(0xFFF8F9FA),
                     shape = RoundedCornerShape(18.dp),
