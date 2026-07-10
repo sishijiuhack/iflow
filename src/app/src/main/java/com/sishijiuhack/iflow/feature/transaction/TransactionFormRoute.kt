@@ -981,6 +981,7 @@ private fun AmountInputCard(
     onNoteExpandClick: () -> Unit,
     mode: EntryMode,
 ) {
+    val dateText = occurredAtInput.drop(5).take(5).replace("-", "/")
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
@@ -1011,7 +1012,7 @@ private fun AmountInputCard(
                 Surface(
                     color = Color(0xFFF8F9FA),
                     shape = RoundedCornerShape(18.dp),
-                    onClick = onDateClick,
+                    onClick = onTimeClick,
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
@@ -1059,14 +1060,14 @@ private fun AmountInputCard(
                 Surface(
                     color = Color(0xFFF8F9FA),
                     shape = RoundedCornerShape(18.dp),
-                    onClick = onTimeClick,
+                    onClick = onDateClick,
                     modifier = Modifier.height(42.dp),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.padding(horizontal = 10.dp),
                     ) {
-                        Text("时间", style = MaterialTheme.typography.bodyMedium)
+                        Text(dateText, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
