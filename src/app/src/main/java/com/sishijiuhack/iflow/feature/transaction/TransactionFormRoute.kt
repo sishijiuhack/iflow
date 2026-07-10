@@ -941,36 +941,11 @@ private fun NumberKeyboard(
 ) {
     val rows = listOf(
         listOf("1", "2", "3", "⌫"),
-        listOf("4", "5", "6", "C"),
-        listOf("7", "8", "9", "÷"),
+        listOf("4", "5", "6", "+×"),
+        listOf("7", "8", "9", "-÷"),
         listOf(".", "0", "保存再记", "完成"),
     )
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            listOf("+", "-", "×", "÷").forEach { operator ->
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(18.dp),
-                    onClick = { appendAmountKey(amountInput, operator, onAmountChange) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(38.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = operator,
-                            color = mode.tintColor(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
-            }
-        }
         rows.forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -990,8 +965,8 @@ private fun NumberKeyboard(
                                 "完成" -> if (canSave) onDone()
                                 "保存再记" -> if (canSaveAndContinue) onSaveAndContinue()
                                 "⌫" -> onAmountChange(amountInput.dropLast(1))
-                                "C" -> onAmountChange("")
-                                "÷" -> Unit
+                                "+×" -> appendComboOperator(amountInput, "+", "×", onAmountChange)
+                                "-÷" -> appendComboOperator(amountInput, "-", "÷", onAmountChange)
                                 else -> appendAmountKey(amountInput, key, onAmountChange)
                             }
                         },
@@ -1005,10 +980,11 @@ private fun NumberKeyboard(
                                 color = when {
                                     isDone -> MaterialTheme.colorScheme.onError
                                     isSaveAndContinue && !canSaveAndContinue -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                    key in setOf("+×", "-÷") -> mode.tintColor()
                                     else -> MaterialTheme.colorScheme.onSurface
                                 },
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = if (isDone) FontWeight.SemiBold else FontWeight.Normal,
+                                fontWeight = if (isDone || key in setOf("+×", "-÷")) FontWeight.SemiBold else FontWeight.Normal,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -1097,6 +1073,21 @@ private fun TransferAccountCard(
             }
         }
     }
+}
+
+private fun appendComboOperator(
+    current: String,
+    firstOperator: String,
+    secondOperator: String,
+    onAmountChange: (String) -> Unit,
+) {
+    val trimmed = current.dropLastWhile { it.isWhitespace() }
+    val operator = when {
+        trimmed.endsWith(firstOperator) -> secondOperator
+        trimmed.endsWith(secondOperator) -> firstOperator
+        else -> firstOperator
+    }
+    appendAmountKey(current, operator, onAmountChange)
 }
 
 private fun appendAmountKey(
