@@ -601,7 +601,29 @@ private fun TagPickerDialog(
     onTagSelected: (String) -> Unit,
 ) {
     var tagInput by remember(selectedTag) { mutableStateOf(selectedTag) }
+    var showTagManager by remember { mutableStateOf(false) }
     val normalizedTag = tagInput.trim().removePrefix("#")
+    val suggestedTags = remember(selectedTag) {
+        buildList {
+            selectedTag.trim().removePrefix("#").takeIf { it.isNotBlank() }?.let(::add)
+            addAll(listOf("重要", "报销", "优惠", "待确认", "家庭", "工作"))
+        }.distinct()
+    }
+    if (showTagManager) {
+        TagManagerDialog(
+            selectedTag = selectedTag,
+            suggestedTags = suggestedTags,
+            onDismiss = { showTagManager = false },
+            onClear = {
+                onTagSelected("")
+                showTagManager = false
+            },
+            onTagSelected = { tag ->
+                onTagSelected(tag)
+                showTagManager = false
+            },
+        )
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -681,16 +703,101 @@ private fun TagPickerDialog(
                         }
                     }
                 }
-                Text(
-                    text = "标签管理 >",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
+                Surface(
+                    color = Color.Transparent,
+                    shape = RoundedCornerShape(14.dp),
+                    onClick = { showTagManager = true },
                     modifier = Modifier.fillMaxWidth(),
-                )
+                ) {
+                    Text(
+                        text = "标签管理 >",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                }
             }
         },
         confirmButton = {},
+    )
+}
+
+@Composable
+private fun TagManagerDialog(
+    selectedTag: String,
+    suggestedTags: List<String>,
+    onDismiss: () -> Unit,
+    onClear: () -> Unit,
+    onTagSelected: (String) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "标签管理",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "常用标签",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                suggestedTags.chunked(2).forEach { rowTags ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        rowTags.forEach { tag ->
+                            val selected = tag == selectedTag
+                            Surface(
+                                color = if (selected) Color(0xFFEAF3FF) else Color(0xFFF6F7F8),
+                                shape = RoundedCornerShape(16.dp),
+                                onClick = { onTagSelected(tag) },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "#$tag",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                    )
+                                    if (selected) {
+                                        Text(
+                                            text = "当前",
+                                            color = MaterialTheme.colorScheme.primary,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (rowTags.size == 1) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("完成")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onClear, enabled = selectedTag.isNotBlank()) {
+                Text("清空")
+            }
+        },
     )
 }
 
