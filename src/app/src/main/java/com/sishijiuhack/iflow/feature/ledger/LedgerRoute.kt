@@ -27,7 +27,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +43,7 @@ import com.sishijiuhack.iflow.core.model.toCategoryEmoji
 import com.sishijiuhack.iflow.data.repository.MonthSummary
 import com.sishijiuhack.iflow.data.repository.TransactionListItem
 import com.sishijiuhack.iflow.domain.model.TransactionType
+import com.sishijiuhack.iflow.ui.component.IFlowTextField
 
 @Composable
 fun LedgerRoute(
@@ -63,7 +63,7 @@ fun LedgerRoute(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         LedgerHeader()
-        OutlinedTextField(
+        IFlowTextField(
             value = uiState.query,
             onValueChange = viewModel::setQuery,
             placeholder = { Text("输入关键词") },
@@ -74,7 +74,6 @@ fun LedgerRoute(
                 )
             },
             singleLine = true,
-            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth(),
         )
         MonthSwitcher(

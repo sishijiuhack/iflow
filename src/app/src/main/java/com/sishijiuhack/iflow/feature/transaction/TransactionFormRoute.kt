@@ -29,11 +29,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.OpenInFull
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,6 +58,7 @@ import com.sishijiuhack.iflow.data.local.entity.AccountEntity
 import com.sishijiuhack.iflow.data.local.entity.CategoryEntity
 import com.sishijiuhack.iflow.domain.model.AccountType
 import com.sishijiuhack.iflow.domain.model.TransactionType
+import com.sishijiuhack.iflow.ui.component.IFlowTextField
 import java.time.Instant
 import java.time.ZoneId
 
@@ -82,6 +83,7 @@ fun TransactionFormRoute(
     var showDiscountInput by remember { mutableStateOf(false) }
     var showAttachmentInput by remember { mutableStateOf(false) }
     var showFeeInput by remember { mutableStateOf(false) }
+    var showNoteInput by remember { mutableStateOf(false) }
     var transferAccountPicker by remember { mutableStateOf<TransferAccountTarget?>(null) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
     var expandedCategoryId by remember { mutableStateOf<Long?>(null) }
@@ -221,6 +223,14 @@ fun TransactionFormRoute(
         )
     }
 
+    if (showNoteInput) {
+        NoteDialog(
+            value = uiState.form.note,
+            onValueChange = viewModel::setNote,
+            onDismiss = { showNoteInput = false },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -306,6 +316,7 @@ fun TransactionFormRoute(
                 timeError = uiState.timeError,
                 onDateClick = { showDatePicker = true },
                 onTimeClick = { showTimePicker = true },
+                onNoteExpandClick = { showNoteInput = true },
                 mode = selectedMode,
             )
 
@@ -617,7 +628,7 @@ private fun TagPickerDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
+                IFlowTextField(
                     value = tagInput,
                     onValueChange = { tagInput = it.take(16) },
                     placeholder = { Text("搜索或创建标签") },
@@ -703,7 +714,7 @@ private fun FeatureAmountDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
+                IFlowTextField(
                     value = value,
                     onValueChange = onValueChange,
                     placeholder = { Text(placeholder) },
@@ -818,7 +829,7 @@ private fun AttachmentDialog(
                         )
                     }
                 }
-                OutlinedTextField(
+                IFlowTextField(
                     value = value,
                     onValueChange = { onValueChange(it.take(24)) },
                     placeholder = { Text("添加图片说明") },
@@ -860,6 +871,7 @@ private fun AmountInputCard(
     timeError: String?,
     onDateClick: () -> Unit,
     onTimeClick: () -> Unit,
+    onNoteExpandClick: () -> Unit,
     mode: EntryMode,
 ) {
     Surface(
@@ -907,15 +919,40 @@ private fun AmountInputCard(
                         Text(occurredAtInput.takeLast(5))
                     }
                 }
-                OutlinedTextField(
+                IFlowTextField(
                     value = note,
                     onValueChange = onNoteChange,
                     placeholder = { Text("点击填写备注") },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = onTimeClick) {
-                    Text("时间")
+                Surface(
+                    color = Color(0xFFF8F9FA),
+                    shape = RoundedCornerShape(18.dp),
+                    onClick = onNoteExpandClick,
+                    modifier = Modifier.size(42.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.OpenInFull,
+                            contentDescription = "全屏输入备注",
+                            modifier = Modifier.size(17.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Surface(
+                    color = Color(0xFFF8F9FA),
+                    shape = RoundedCornerShape(18.dp),
+                    onClick = onTimeClick,
+                    modifier = Modifier.height(42.dp),
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                    ) {
+                        Text("时间", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
             if (timeError != null) {
@@ -927,6 +964,49 @@ private fun AmountInputCard(
             }
         }
     }
+}
+
+@Composable
+private fun NoteDialog(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "备注",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            IFlowTextField(
+                value = value,
+                onValueChange = { onValueChange(it.take(160)) },
+                placeholder = { Text("点击填写备注") },
+                minLines = 5,
+                maxLines = 8,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("完成")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onValueChange("")
+                    onDismiss()
+                },
+            ) {
+                Text("清空")
+            }
+        },
+    )
 }
 
 @Composable
