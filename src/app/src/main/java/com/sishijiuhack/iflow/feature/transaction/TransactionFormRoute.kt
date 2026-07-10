@@ -2,6 +2,12 @@ package com.sishijiuhack.iflow.feature.transaction
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +85,14 @@ fun TransactionFormRoute(
     var transferAccountPicker by remember { mutableStateOf<TransferAccountTarget?>(null) }
     var selectedMode by remember { mutableStateOf(EntryMode.Expense) }
     var expandedCategoryId by remember { mutableStateOf<Long?>(null) }
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(3),
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            viewModel.setAttachment(pickedImageLabel(context, uris))
+            showAttachmentInput = true
+        }
+    }
 
     LaunchedEffect(uiState.saveFinished) {
         if (uiState.saveFinished) {
@@ -187,6 +201,11 @@ fun TransactionFormRoute(
         AttachmentDialog(
             value = uiState.form.attachmentLabel,
             onValueChange = viewModel::setAttachment,
+            onPickImage = {
+                imagePickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                )
+            },
             onDismiss = { showAttachmentInput = false },
         )
     }
@@ -727,6 +746,7 @@ private fun FeatureAmountDialog(
 private fun AttachmentDialog(
     value: String,
     onValueChange: (String) -> Unit,
+    onPickImage: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -740,6 +760,64 @@ private fun AttachmentDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "支持选择3张图片",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    repeat(3) { index ->
+                        Surface(
+                            color = if (value.isNotBlank() && index == 0) Color(0xFFEAF3FF) else Color(0xFFF0F0F2),
+                            shape = RoundedCornerShape(18.dp),
+                            onClick = onPickImage,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(82.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Image,
+                                    contentDescription = null,
+                                    tint = if (value.isNotBlank() && index == 0) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+                Surface(
+                    color = Color(0xFFEAF3FF),
+                    shape = RoundedCornerShape(18.dp),
+                    onClick = onPickImage,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Image,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = "选择图片",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = value,
                     onValueChange = { onValueChange(it.take(24)) },
@@ -748,7 +826,7 @@ private fun AttachmentDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    text = "当前先记录图片占位，不额外申请相册权限。",
+                    text = "通过系统图片选择器添加，不额外申请相册权限。",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -1042,6 +1120,28 @@ private fun appendAmountKey(
     if (key == "." && currentPart.contains(".")) return
     val next = if (current == "0" && key != ".") key else current + key
     onAmountChange(next)
+}
+
+private fun pickedImageLabel(context: Context, uris: List<Uri>): String {
+    if (uris.size > 1) return "${uris.size}张图片"
+    val uri = uris.firstOrNull() ?: return "已选图片"
+    val displayName = runCatching {
+        context.contentResolver.query(
+            uri,
+            arrayOf(OpenableColumns.DISPLAY_NAME),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
+        }
+    }.getOrNull()
+    return displayName
+        ?.substringBeforeLast('.', missingDelimiterValue = displayName)
+        ?.take(24)
+        ?.takeIf { it.isNotBlank() }
+        ?: "已选图片"
 }
 
 private data class ActionChipSpec(
